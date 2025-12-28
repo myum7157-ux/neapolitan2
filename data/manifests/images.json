@@ -1,0 +1,137 @@
+{
+  "_placeholder": "assets/images/_placeholder.png",
+  "room1": {
+    "bg": {
+      "r1_bg_lobby_01": "assets/images/room1/bg/r1_bg_lobby_01.png",
+      "r1_bg_corridor_01": "assets/images/room1/bg/r1_bg_corridor_01.png",
+      "r1_bg_door_01": "assets/images/room1/bg/r1_bg_door_01.png",
+      "r1_bg_archive_01": "assets/images/room1/bg/r1_bg_archive_01.png",
+      "r1_bg_cctvroom_01": "assets/images/room1/bg/r1_bg_cctvroom_01.png",
+      "r1_bg_stair_01": "assets/images/room1/bg/r1_bg_stair_01.png",
+      "r1_bg_electrical_01": "assets/images/room1/bg/r1_bg_electrical_01.png",
+      "r1_bg_elevator_01": "assets/images/room1/bg/r1_bg_elevator_01.png",
+      "r1_bg_mirror_01": "assets/images/room1/bg/r1_bg_mirror_01.png",
+      "r1_bg_infirmary_01": "assets/images/room1/bg/r1_bg_infirmary_01.png",
+      "r1_bg_voidhall_01": "assets/images/room1/bg/r1_bg_voidhall_01.png",
+      "r1_bg_altar_01": "assets/images/room1/bg/r1_bg_altar_01.png"
+    }
+  },
+  "global_overlays": {
+    "overlay_scanlines_01": "assets/images/overlays/global/overlay_scanlines_01.png",
+    "overlay_grain_01": "assets/images/overlays/global/overlay_grain_01.png",
+    "overlay_vignette_01": "assets/images/overlays/global/overlay_vignette_01.png",
+    "overlay_rec_timecode_01": "assets/images/overlays/global/overlay_rec_timecode_01.png",
+    "overlay_redactionbars_01": "assets/images/overlays/global/overlay_redactionbars_01.png",
+    "glitch_mask_01": "assets/images/overlays/global/glitch_mask_01.png",
+    "glitch_mask_02": "assets/images/overlays/global/glitch_mask_02.png",
+    "glitch_mask_03": "assets/images/overlays/global/glitch_mask_03.png",
+    "glitch_mask_04": "assets/images/overlays/global/glitch_mask_04.png",
+    "paper_texture_01": "assets/images/overlays/global/paper_texture_01.png"
+  },
+  "cards": {
+    "death_reports": {
+      "death_report_01_rulebreak": "assets/images/cards/death/death_report_01_rulebreak.png",
+      "death_report_02_trap": "assets/images/cards/death/death_report_02_trap.png",
+      "death_report_03_sacrifice": "assets/images/cards/death/death_report_03_sacrifice.png",
+      "death_report_04_falsewill": "assets/images/cards/death/death_report_04_falsewill.png",
+      "death_report_05_special": "assets/images/cards/death/death_report_05_special.png"
+    },
+    "will_cards": {
+      "will_card_01_clean": "assets/images/cards/will/will_card_01_clean.png",
+      "will_card_02_clean_form": "assets/images/cards/will/will_card_02_clean_form.png",
+      "will_card_03_worn": "assets/images/cards/will/will_card_03_worn.png",
+      "will_card_04_worn_stained": "assets/images/cards/will/will_card_04_worn_stained.png",
+      "will_card_05_corrupted": "assets/images/cards/will/will_card_05_corrupted.png",
+      "will_card_06_priority_hint": "assets/images/cards/will/will_card_06_priority_hint.png"
+    },
+    "rank_cards": {
+      "rank_card_01_normal": "assets/images/cards/rank/rank_card_01_normal.png",
+      "rank_card_02_worn": "assets/images/cards/rank/rank_card_02_worn.png",
+      "rank_card_03_corrupted": "assets/images/cards/rank/rank_card_03_corrupted.png",
+      "rank_card_04_special_event": "assets/images/cards/rank/rank_card_04_special_event.png",
+      "rank_card_05_top_tier": "assets/images/cards/rank/rank_card_05_top_tier.png"
+    },
+    "share_frames": {
+      "share_frame_vertical_01": "assets/images/cards/share/share_frame_vertical_01.png",
+      "share_frame_square_01": "assets/images/cards/share/share_frame_square_01.png"
+    }
+  },
+  "boards": {
+    "will_board_01_stack": "assets/images/boards/will_board_01_stack.png",
+    "will_board_02_pinboard": "assets/images/boards/will_board_02_pinboard.png"
+  },
+  "feeds": {
+    "death_feed_01_pile": "assets/images/feeds/death_feed_01_pile.png",
+    "death_feed_02_timeline": "assets/images/feeds/death_feed_02_timeline.png"
+  },
+  "panels": {
+    "choice_panel_clean": "assets/images/panels/choice_panel_clean.png",
+    "choice_panel_warning": "assets/images/panels/choice_panel_warning.png",
+    "choice_panel_locked": "assets/images/panels/choice_panel_locked.png"
+  },
+  "props": {
+    "prop_evidence_tag": "assets/images/props/prop_evidence_tag.png",
+    "prop_sealed_tape": "assets/images/props/prop_sealed_tape.png",
+    "prop_paperclip_cluster": "assets/images/props/prop_paperclip_cluster.png",
+    "prop_polaroid_blank_frame": "assets/images/props/prop_polaroid_blank_frame.png",
+    "prop_fingerprint_smudge": "assets/images/props/prop_fingerprint_smudge.png",
+    "prop_broken_glass_shard": "assets/images/props/prop_broken_glass_shard.png",
+    "prop_cable_bundle": "assets/images/props/prop_cable_bundle.png",
+    "prop_warning_tape_shape": "assets/images/props/prop_warning_tape_shape.png"
+  },
+  "gate": {
+    "gate_bg_01": "assets/images/gate/gate_bg_01.png",
+    "gate_panel_01": "assets/images/gate/gate_panel_01.png",
+    "gate_keypad_01": "assets/images/gate/gate_keypad_01.png",
+    "gate_stamp_access_granted": "assets/images/gate/gate_stamp_access_granted.png",
+    "gate_stamp_access_denied": "assets/images/gate/gate_stamp_access_denied.png",
+    "gate_flash_01": "assets/images/gate/gate_flash_01.png",
+    "gate_scan_sweep_01": "assets/images/gate/gate_scan_sweep_01.png",
+    "gate_lock_brackets_01": "assets/images/gate/gate_lock_brackets_01.png",
+    "gate_error_smear_01": "assets/images/gate/gate_error_smear_01.png",
+    "gate_success_fade_01": "assets/images/gate/gate_success_fade_01.png"
+  },
+  "lobby": {
+    "lobby_board_status_01": "assets/images/lobby/lobby_board_status_01.png",
+    "lobby_panel_news_01": "assets/images/lobby/lobby_panel_news_01.png",
+    "lobby_panel_rank_01": "assets/images/lobby/lobby_panel_rank_01.png",
+    "queue_ticket_01": "assets/images/lobby/queue_ticket_01.png",
+    "queue_progress_strip_01": "assets/images/lobby/queue_progress_strip_01.png",
+    "queue_callout_01": "assets/images/lobby/queue_callout_01.png",
+    "queue_idle_overlay_01": "assets/images/lobby/queue_idle_overlay_01.png",
+    "queue_kick_overlay_01": "assets/images/lobby/queue_kick_overlay_01.png"
+  },
+  "minigame": {
+    "people": {
+      "person_A": "assets/images/minigame/person_A.png",
+      "person_B": "assets/images/minigame/person_B.png",
+      "person_C": "assets/images/minigame/person_C.png",
+      "person_D": "assets/images/minigame/person_D.png",
+      "person_E": "assets/images/minigame/person_E.png"
+    },
+    "torn_rules_01": "assets/images/minigame/torn_rules_01.png",
+    "ui": {
+      "mini_bg_01": "assets/images/minigame/ui/mini_bg_01.png",
+      "mini_card_frame_01": "assets/images/minigame/ui/mini_card_frame_01.png",
+      "mini_card_frame_02": "assets/images/minigame/ui/mini_card_frame_02.png",
+      "mini_icon_set_01": "assets/images/minigame/ui/mini_icon_set_01.png",
+      "mini_result_frame_01": "assets/images/minigame/ui/mini_result_frame_01.png",
+      "mini_glitch_hint_01": "assets/images/minigame/ui/mini_glitch_hint_01.png",
+      "mini_glitch_hint_02": "assets/images/minigame/ui/mini_glitch_hint_02.png",
+      "mini_stamp_hint_01": "assets/images/minigame/ui/mini_stamp_hint_01.png",
+      "mini_stamp_hint_02": "assets/images/minigame/ui/mini_stamp_hint_02.png",
+      "mini_puzzle_sheet_01": "assets/images/minigame/ui/mini_puzzle_sheet_01.png",
+      "mini_puzzle_sheet_02": "assets/images/minigame/ui/mini_puzzle_sheet_02.png",
+      "mini_success_card_01": "assets/images/minigame/ui/mini_success_card_01.png",
+      "mini_fail_card_01": "assets/images/minigame/ui/mini_fail_card_01.png"
+    }
+  },
+  "ending": {
+    "ending_frame_01_reveal": "assets/images/ending/ending_frame_01_reveal.png",
+    "ending_frame_02_archive_open": "assets/images/ending/ending_frame_02_archive_open.png",
+    "ending_frame_03_blackout": "assets/images/ending/ending_frame_03_blackout.png",
+    "ending_frame_04_sanitize": "assets/images/ending/ending_frame_04_sanitize.png",
+    "ending_frame_05_final_stamp": "assets/images/ending/ending_frame_05_final_stamp.png",
+    "ending_frame_06_glitch_collapse": "assets/images/ending/ending_frame_06_glitch_collapse.png"
+  }
+}

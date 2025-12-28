@@ -1,0 +1,69 @@
+{
+  "bgm": {
+    "LOBBY_WAIT_LOOP": "assets/audio/bgm/LOBBY_WAIT_LOOP.mp3",
+    "ROOM_BASE_LOOP": "assets/audio/bgm/ROOM_BASE_LOOP.mp3",
+    "TENSION_LOW_LOOP": "assets/audio/bgm/TENSION_LOW_LOOP.mp3",
+    "TENSION_MID_LOOP": "assets/audio/bgm/TENSION_MID_LOOP.mp3",
+    "TENSION_HIGH_LOOP": "assets/audio/bgm/TENSION_HIGH_LOOP.mp3",
+    "NEAR_END_LOOP": "assets/audio/bgm/NEAR_END_LOOP.mp3"
+  },
+  "sfx": {
+    "sfx_ui_click_01": "assets/audio/sfx/sfx_ui_click_01.mp3",
+    "sfx_ui_error_01": "assets/audio/sfx/sfx_ui_error_01.mp3",
+    "sfx_ui_warning_alarm_01": "assets/audio/sfx/sfx_ui_warning_alarm_01.mp3",
+    "sfx_scene_door_slam_01": "assets/audio/sfx/sfx_scene_door_slam_01.mp3",
+    "sfx_log_tapestop_rewind_01": "assets/audio/sfx/sfx_log_tapestop_rewind_01.mp3",
+    "sfx_ui_hover_01": "assets/audio/sfx/sfx_ui_hover_01.mp3",
+    "sfx_typewriter_tick_01": "assets/audio/sfx/sfx_typewriter_tick_01.mp3",
+    "sfx_stamp_thud_01": "assets/audio/sfx/sfx_stamp_thud_01.mp3",
+    "sfx_paper_shuffle_01": "assets/audio/sfx/sfx_paper_shuffle_01.mp3",
+    "sfx_lock_beep_01": "assets/audio/sfx/sfx_lock_beep_01.mp3",
+    "sfx_access_granted_01": "assets/audio/sfx/sfx_access_granted_01.mp3",
+    "sfx_access_denied_01": "assets/audio/sfx/sfx_access_denied_01.mp3",
+    "sfx_queue_call_01": "assets/audio/sfx/sfx_queue_call_01.mp3",
+    "sfx_door_metal_01": "assets/audio/sfx/sfx_door_metal_01.mp3",
+    "sfx_death_hit_01": "assets/audio/sfx/sfx_death_hit_01.mp3",
+    "sfx_share_capture_01": "assets/audio/sfx/sfx_share_capture_01.mp3",
+    "layer_low_rumble_01": "assets/audio/sfx/layer_low_rumble_01.mp3",
+    "layer_static_bed_01": "assets/audio/sfx/layer_static_bed_01.mp3",
+    "layer_fluorescent_hum_01": "assets/audio/sfx/layer_fluorescent_hum_01.mp3",
+    "layer_cable_noise_01": "assets/audio/sfx/layer_cable_noise_01.mp3",
+    "sfx_string_stinger_01": "assets/audio/sfx/sfx_string_stinger_01.mp3",
+    "sfx_string_stinger_02": "assets/audio/sfx/sfx_string_stinger_02.mp3"
+  },
+  "loops": {
+    "loop_roomtone_vent_01": "assets/audio/loops/loop_roomtone_vent_01.mp3",
+    "loop_roomtone_fluorescent_01": "assets/audio/loops/loop_roomtone_fluorescent_01.mp3",
+    "loop_corrupt_10_tapehiss_01": "assets/audio/loops/loop_corrupt_10_tapehiss_01.mp3",
+    "loop_corrupt_20_tapenoise_01": "assets/audio/loops/loop_corrupt_20_tapenoise_01.mp3",
+    "loop_corrupt_30_vinylhiss_01": "assets/audio/loops/loop_corrupt_30_vinylhiss_01.mp3",
+    "loop_corrupt_40_crt_glitchbed_01": "assets/audio/loops/loop_corrupt_40_crt_glitchbed_01.mp3"
+  },
+  "bands": [
+    {
+      "min": 0,
+      "max": 24,
+      "bgm": "ROOM_BASE_LOOP"
+    },
+    {
+      "min": 25,
+      "max": 49,
+      "bgm": "TENSION_LOW_LOOP"
+    },
+    {
+      "min": 50,
+      "max": 74,
+      "bgm": "TENSION_MID_LOOP"
+    },
+    {
+      "min": 75,
+      "max": 94,
+      "bgm": "TENSION_HIGH_LOOP"
+    },
+    {
+      "min": 95,
+      "max": 100,
+      "bgm": "NEAR_END_LOOP"
+    }
+  ]
+}

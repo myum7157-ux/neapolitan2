@@ -1,0 +1,36 @@
+{
+  "ui": {
+    "gate": {
+      "background": "gate_bg_01",
+      "panel": "gate_panel_01",
+      "keypad": "gate_keypad_01",
+      "stampGranted": "gate_stamp_access_granted",
+      "stampDenied": "gate_stamp_access_denied",
+      "flash": "gate_flash_01"
+    },
+    "lobby": {
+      "statusBoard": "lobby_board_status_01",
+      "newsPanel": "lobby_panel_news_01",
+      "rankPanel": "lobby_panel_rank_01"
+    },
+    "queue": {
+      "ticket": "queue_ticket_01",
+      "progress": "queue_progress_strip_01",
+      "callout": "queue_callout_01"
+    },
+    "room1": {
+      "defaultBg": "r1_bg_lobby_01",
+      "defaultOverlays": [
+        "overlay_scanlines_01",
+        "overlay_grain_01",
+        "overlay_vignette_01"
+      ]
+    },
+    "minigame": {
+      "bg": "mini_bg_01",
+      "frameQuestion": "mini_card_frame_01",
+      "frameExplain": "mini_card_frame_02",
+      "result": "mini_result_frame_01"
+    }
+  }
+}
