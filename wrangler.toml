@@ -1,0 +1,17 @@
+
+# Cloudflare Pages 로컬 개발 설정
+name = "napolitan-relay"
+compatibility_date = "2024-12-01"
+
+# Pages는 자동으로 /functions 디렉토리를 인식합니다
+pages_build_output_dir = "."
+
+[env.production]
+# 프로덕션 환경 변수는 Cloudflare Dashboard에서 설정하세요:
+# Settings > Environment Variables
+# GAME_PASSWORD=your_actual_password
+# SESSION_SECRET=your_random_secret_key
+
+[env.development]
+# 로컬 개발용 - .dev.vars 파일에서 관리
+# .dev.vars 파일을 프로젝트 루트에 생성하세요
