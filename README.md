@@ -7,6 +7,8 @@ Cloudflare Pages 환경 변수 설정했나요?
 
 Dashboard > Settings > Environment Variables
 GAME_PASSWORD 와 SESSION_SECRET 추가
+설정하지 않으면 /api/auth/login 이 CONFIG_MISSING(500) 에러를 반환합니다
+비밀번호 불일치 시 /api/auth/login 은 INVALID_PASSWORD(401)와 안내 메시지를 돌려줍니다
 Production과 Preview 모두 설정
 ⚠️ 환경 변수 추가 후 반드시 재배포 필요!
 
