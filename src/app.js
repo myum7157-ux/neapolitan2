@@ -1,4 +1,4 @@
-// Napolitan Relay Starter — v11 (no KV/DO yet; auth is Worker/Pages Functions only)
+// Napolitan Relay Starter — v12 (Fixed Auth)
 const $ = (id) => document.getElementById(id);
 
 const state = {
@@ -6,7 +6,6 @@ const state = {
   audio: null,
   config: null,
   cases: null,
-  // local-only feeds
   wills: [],
   deaths: [],
   rank: [],
@@ -40,21 +39,39 @@ function img(section, key){
   return I._placeholder;
 }
 
-// -------- Gate (index.html) --------
 function isGatePage(){ return document.body.classList.contains('gate'); }
 function isPlayPage(){ return document.body.classList.contains('play'); }
 
+// -------- Gate Login (IMPROVED) --------
 async function gateLogin(password){
-  const r = await fetch('/api/auth/login', {
-    method:'POST',
-    headers:{ 'content-type':'application/json' },
-    body: JSON.stringify({ password })
-  });
-  if(!r.ok){
-    const t = await r.text().catch(()=> '');
-    throw new Error(t || 'DENIED');
+  try {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 
+        'content-type': 'application/json',
+        'accept': 'application/json'
+      },
+      credentials: 'same-origin', // Important for cookies
+      body: JSON.stringify({ password })
+    });
+
+    // Log for debugging
+    console.log('Login response status:', response.status);
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      console.error('Login failed:', text);
+      throw new Error(text || 'DENIED');
+    }
+
+    const data = await response.json();
+    console.log('Login success:', data);
+    return data;
+
+  } catch (error) {
+    console.error('Login error:', error);
+    throw error;
   }
-  return await r.json();
 }
 
 function bindGate(){
@@ -71,69 +88,123 @@ function bindGate(){
   const flash = $('gateFlash');
 
   // visuals
-  gateBg.style.backgroundImage = `url('${img('gate', state.config.ui.gate.background)}')`;
-  gatePanel.style.backgroundImage = `url('${img('gate', state.config.ui.gate.panel)}')`;
-  keypad.style.backgroundImage = `url('${img('gate', state.config.ui.gate.keypad)}')`;
-  stampGranted.style.backgroundImage = `url('${img('gate', state.config.ui.gate.stampGranted)}')`;
-  stampDenied.style.backgroundImage = `url('${img('gate', state.config.ui.gate.stampDenied)}')`;
+  if (gateBg && state.config?.ui?.gate) {
+    gateBg.style.backgroundImage = `url('${img('gate', state.config.ui.gate.background)}')`;
+  }
+  if (gatePanel && state.config?.ui?.gate) {
+    gatePanel.style.backgroundImage = `url('${img('gate', state.config.ui.gate.panel)}')`;
+  }
+  if (keypad && state.config?.ui?.gate) {
+    keypad.style.backgroundImage = `url('${img('gate', state.config.ui.gate.keypad)}')`;
+  }
+  if (stampGranted && state.config?.ui?.gate) {
+    stampGranted.style.backgroundImage = `url('${img('gate', state.config.ui.gate.stampGranted)}')`;
+  }
+  if (stampDenied && state.config?.ui?.gate) {
+    stampDenied.style.backgroundImage = `url('${img('gate', state.config.ui.gate.stampDenied)}')`;
+  }
 
   const showStamp = (el) => {
+    if (!el) return;
     el.style.opacity = '1';
     el.style.transform = 'rotate(-12deg) scale(1)';
-    setTimeout(()=>{ el.style.opacity='0'; el.style.transform='rotate(-12deg) scale(.95)'; }, 900);
+    setTimeout(()=>{ 
+      el.style.opacity='0'; 
+      el.style.transform='rotate(-12deg) scale(.95)'; 
+    }, 900);
   };
+
   const flashOnce = () => {
+    if (!flash) return;
     flash.style.opacity = '1';
     setTimeout(()=> flash.style.opacity='0', 120);
   };
 
-  keypad.addEventListener('click', (e)=>{
-    const b = e.target.closest('button');
-    if(!b) return;
-    const k = b.dataset.k;
-    if(k==='clr') pw.value='';
-    else if(k==='del') pw.value = pw.value.slice(0,-1);
-    else pw.value += k;
-  });
+  if (keypad) {
+    keypad.addEventListener('click', (e)=>{
+      const b = e.target.closest('button');
+      if(!b) return;
+      const k = b.dataset.k;
+      if(k==='clr') pw.value='';
+      else if(k==='del') pw.value = pw.value.slice(0,-1);
+      else pw.value += k;
+    });
+  }
 
   async function doLogin(){
-    msg.textContent='';
+    msg.textContent='처리중...';
+    
     try{
       btnLogin.disabled = true;
-      const res = await gateLogin(pw.value.trim());
-      showStamp(stampGranted);
-      msg.textContent = 'ACCESS GRANTED';
-      setTimeout(()=> location.href='/play.html', 450);
-      return res;
-    }catch(err){
+      
+      const inputPassword = pw.value.trim();
+      console.log('Attempting login with password length:', inputPassword.length);
+      
+      if (!inputPassword) {
+        throw new Error('비밀번호를 입력하세요');
+      }
+
+      const res = await gateLogin(inputPassword);
+      
+      if (res.ok) {
+        showStamp(stampGranted);
+        msg.textContent = 'ACCESS GRANTED';
+        msg.style.color = '#4dff4d';
+        
+        // Wait a bit before redirect
+        setTimeout(()=> {
+          console.log('Redirecting to play.html...');
+          window.location.href = '/play.html';
+        }, 800);
+      } else {
+        throw new Error('로그인 실패');
+      }
+      
+    } catch(err){
+      console.error('Login error:', err);
       flashOnce();
       showStamp(stampDenied);
-      msg.textContent = 'ACCESS DENIED';
+      msg.textContent = err.message || 'ACCESS DENIED';
+      msg.style.color = '#ff4d4d';
       pw.value='';
-    }finally{
-      btnLogin.disabled = false;
+    } finally {
+      setTimeout(() => {
+        btnLogin.disabled = false;
+      }, 500);
     }
   }
 
-  btnLogin.addEventListener('click', doLogin);
-  pw.addEventListener('keydown', (e)=>{ if(e.key==='Enter') doLogin(); });
+  if (btnLogin) {
+    btnLogin.addEventListener('click', doLogin);
+  }
+  if (pw) {
+    pw.addEventListener('keydown', (e)=>{ 
+      if(e.key==='Enter') doLogin(); 
+    });
+  }
 
-  // mini panel
+  // Mini panel navigation
   const miniPanel = $('miniPanel');
   const btnBack = $('btnBackGate');
-  btnToMini.addEventListener('click', ()=>{
-    $('gatePanel').classList.add('hidden');
-    miniPanel.classList.remove('hidden');
-    startMini();
-  });
-  btnBack.addEventListener('click', ()=>{
-    miniPanel.classList.add('hidden');
-    $('gatePanel').classList.remove('hidden');
-    msg.textContent='';
-  });
+  
+  if (btnToMini && miniPanel && gatePanel) {
+    btnToMini.addEventListener('click', ()=>{
+      gatePanel.classList.add('hidden');
+      miniPanel.classList.remove('hidden');
+      startMini();
+    });
+  }
+  
+  if (btnBack && miniPanel && gatePanel) {
+    btnBack.addEventListener('click', ()=>{
+      miniPanel.classList.add('hidden');
+      gatePanel.classList.remove('hidden');
+      msg.textContent='';
+    });
+  }
 }
 
-// -------- MiniGame (gate) --------
+// -------- MiniGame --------
 const mini = {
   case: null,
   lives: 3,
@@ -169,7 +240,6 @@ function renderMini(){
   $('btnMiniHint').disabled = true;
   $('btnMiniAccuse').disabled = false;
 
-  // rule reveal hidden initially
   $('miniRuleBox').classList.add('hidden');
   $('miniRuleImg').src = img('miniRule','torn_rules_01');
   $('miniRuleText').textContent = '';
@@ -216,25 +286,22 @@ function bindMini(){
       return;
     }
 
-    // wrong
     mini.lives -= 1;
     $('miniMsg').textContent = `오답. 남은 목숨 ${mini.lives}/3`;
     if(mini.lives <= 0){
       mini.finished = true;
       $('miniMsg').textContent = '게임 오버';
       $('btnMiniHint').disabled = true;
-      renderMini(); // reset visuals
+      renderMini();
       $('miniMsg').textContent = '게임 오버. RESTART';
       return;
     }
 
-    // First fail -> reveal torn rules condition
     if(mini.lives === 2){
       $('miniRuleBox').classList.remove('hidden');
       $('miniRuleText').textContent = mini.case.ruleReveal ?? '';
     }
 
-    // Second fail -> last chance, hint enabled
     if(mini.lives === 1){
       $('btnMiniHint').disabled = false;
       $('miniMsg').textContent += ' · 마지막 기회';
@@ -259,7 +326,7 @@ function bindMini(){
   $('btnMiniRestart').addEventListener('click', startMini);
 }
 
-// -------- Play (play.html) --------
+// -------- Play Page --------
 function bindTabs(){
   document.querySelectorAll('.tab').forEach((b)=>{
     b.addEventListener('click', ()=>{
@@ -274,13 +341,19 @@ function bindTabs(){
 
 function setBG(key){
   const el = $('bg');
-  el.style.backgroundImage = `url('${img('bg', key)}')`;
+  if (el) {
+    el.style.backgroundImage = `url('${img('bg', key)}')`;
+  }
 }
+
 function setOverlays(keys){
   const [a,b,c] = keys;
-  $('ov1').style.backgroundImage = a?`url('${img('overlay',a)}')`:'';
-  $('ov2').style.backgroundImage = b?`url('${img('overlay',b)}')`:'';
-  $('ov3').style.backgroundImage = c?`url('${img('overlay',c)}')`:'';
+  const ov1 = $('ov1');
+  const ov2 = $('ov2');
+  const ov3 = $('ov3');
+  if (ov1) ov1.style.backgroundImage = a?`url('${img('overlay',a)}')`:'';
+  if (ov2) ov2.style.backgroundImage = b?`url('${img('overlay',b)}')`:'';
+  if (ov3) ov3.style.backgroundImage = c?`url('${img('overlay',c)}')`:'';
 }
 
 function renderLobby(){
@@ -298,7 +371,11 @@ const room1Story = {
   cur: null,
   data: null,
 };
-function nodeById(id){ return room1Story.data?.nodes?.find(n=>n.id===id) ?? null; }
+
+function nodeById(id){ 
+  return room1Story.data?.nodes?.find(n=>n.id===id) ?? null; 
+}
+
 function goNode(id){
   room1Story.cur = nodeById(id);
   if(!room1Story.cur) return;
@@ -328,7 +405,7 @@ function openDeath(cardKey, willText){
   const modal=$('deathModal');
   $('deathCardImg').src = img('death', cardKey);
   modal.classList.remove('hidden');
-  // store
+  
   if(willText){
     state.wills.unshift(willText);
   }
@@ -348,40 +425,53 @@ function bindPlay(){
   });
 }
 
+// -------- Init --------
 async function init(){
-  state.images = await fetchJSON('/data/manifests/images.json');
-  state.audio = await fetchJSON('/data/manifests/audio.json');
-  state.config = await fetchJSON('/data/config.json');
-  state.cases = await fetchJSON('/data/minigame_cases.json');
+  try {
+    console.log('Initializing app...');
+    
+    state.images = await fetchJSON('/data/manifests/images.json');
+    state.audio = await fetchJSON('/data/manifests/audio.json');
+    state.config = await fetchJSON('/data/config.json');
+    state.cases = await fetchJSON('/data/minigame_cases.json');
+    room1Story.data = await fetchJSON('/data/room1_story.json');
 
-  // simple room1 story
-  room1Story.data = await fetchJSON('/data/room1_story.json');
+    console.log('Data loaded successfully');
 
-  if(isGatePage()){
-    // gate background fallback if missing
-    bindGate();
-    bindMini();
-    const url = new URL(location.href);
-    if(url.searchParams.get('mini')==='1'){
-      $('gatePanel').classList.add('hidden');
-      $('miniPanel').classList.remove('hidden');
-      startMini();
-    }else{
-      // preload mini case
-      startMini();
+    if(isGatePage()){
+      console.log('Gate page detected');
+      bindGate();
+      bindMini();
+      
+      const url = new URL(location.href);
+      if(url.searchParams.get('mini')==='1'){
+        $('gatePanel').classList.add('hidden');
+        $('miniPanel').classList.remove('hidden');
+        startMini();
+      } else {
+        startMini();
+      }
     }
-  }
 
-  if(isPlayPage()){
-    // default visuals
-    setBG(state.config.ui.room1.defaultBg);
-    setOverlays(state.config.ui.room1.defaultOverlays);
-    $('phaseChip').textContent='LOBBY';
-    bindPlay();
-    renderLobby();
+    if(isPlayPage()){
+      console.log('Play page detected');
+      setBG(state.config.ui.room1.defaultBg);
+      setOverlays(state.config.ui.room1.defaultOverlays);
+      $('phaseChip').textContent='LOBBY';
+      bindPlay();
+      renderLobby();
+    }
+    
+  } catch(e) {
+    console.error('Init error:', e);
+    document.body.innerHTML = `
+      <div style="padding:24px;color:#ff4d4d;font-family:monospace">
+        <h2>초기화 오류</h2>
+        <pre style="white-space:pre-wrap;color:#ddd;padding:18px;background:rgba(0,0,0,.5);border-radius:8px">${esc(e.stack||e.message||String(e))}</pre>
+        <p style="color:#a8a8a8">브라우저 콘솔(F12)에서 더 자세한 정보를 확인하세요.</p>
+      </div>
+    `;
   }
 }
-init().catch((e)=>{
-  console.error(e);
-  document.body.innerHTML = `<pre style="white-space:pre-wrap;color:#ddd;padding:18px">${esc(e.stack||e.message||String(e))}</pre>`;
-});
+
+init();
