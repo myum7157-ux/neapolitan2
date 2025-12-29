@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Test</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #0b0b0b;
+      color: #e8e8e8;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .section {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 14px;
+      font-family: monospace;
+      margin: 5px 0;
+    }
+    button {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #e8e8e8;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background: rgba(255,255,255,0.15);
+    }
+    .success { color: #4dff4d; }
+    .error { color: #ff4d4d; }
+    .info { color: #4d9fff; }
+    pre {
+      background: rgba(0,0,0,0.3);
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔐 Login API Test</h1>
+  
+  <div class="section">
+    <h2>1. 환경 확인</h2>
+    <button onclick="checkEnv()">환경 체크</button>
+    <pre id="envResult"></pre>
+  </div>
+
+  <div class="section">
+    <h2>2. 로그인 테스트</h2>
+    <input type="password" id="testPassword" placeholder="비밀번호 입력" value="1234">
+    <button onclick="testLogin()">로그인 시도</button>
+    <pre id="loginResult"></pre>
+  </div>
+
+  <div class="section">
+    <h2>3. 쿠키 확인</h2>
+    <button onclick="checkCookies()">쿠키 확인</button>
+    <pre id="cookieResult"></pre>
+  </div>
+
+  <div class="section">
+    <h2>4. Play 페이지 접근 테스트</h2>
+    <button onclick="testPlayAccess()">play.html 접근</button>
+    <pre id="playResult"></pre>
+  </div>
+
+  <script>
+    function log(elementId, message, type = 'info') {
+      const el = document.getElementById(elementId);
+      const color = type === 'success' ? '#4dff4d' : type === 'error' ? '#ff4d4d' : '#4d9fff';
+      const time = new Date().toLocaleTimeString();
+      el.innerHTML += `<span style="color:${color}">[${time}] ${message}</span>\n`;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function clear(elementId) {
+      document.getElementById(elementId).innerHTML = '';
+    }
+
+    async function checkEnv() {
+      clear('envResult');
+      log('envResult', '환경 확인 중...', 'info');
+      
+      log('envResult', `현재 URL: ${window.location.href}`, 'info');
+      log('envResult', `Protocol: ${window.location.protocol}`, 'info');
+      log('envResult', `Host: ${window.location.host}`, 'info');
+      
+      // Check if running on Cloudflare
+      const isCloudflare = window.location.host.includes('pages.dev') || 
+                          window.location.host.includes('workers.dev');
+      log('envResult', `Cloudflare Pages: ${isCloudflare ? 'YES ✓' : 'NO (로컬)'}`, 
+          isCloudflare ? 'success' : 'info');
+      
+      // Check HTTPS
+      const isSecure = window.location.protocol === 'https:';
+      log('envResult', `HTTPS: ${isSecure ? 'YES ✓' : 'NO (HTTP)'}`, 
+          isSecure ? 'success' : 'info');
+    }
+
+    async function testLogin() {
+      clear('loginResult');
+      const password = document.getElementById('testPassword').value;
+      
+      log('loginResult', `비밀번호 길이: ${password.length}`, 'info');
+      log('loginResult', 'POST /api/auth/login 요청 중...', 'info');
+      
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'accept': 'application/json'
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify({ password })
+        });
+
+        log('loginResult', `응답 상태: ${response.status} ${response.statusText}`, 
+            response.ok ? 'success' : 'error');
+        
+        const contentType = response.headers.get('content-type');
+        log('loginResult', `Content-Type: ${contentType}`, 'info');
+        
+        let data;
+        try {
+          const text = await response.text();
+          log('loginResult', `응답 본문: ${text}`, 'info');
+          data = JSON.parse(text);
+        } catch (e) {
+          log('loginResult', `JSON 파싱 실패: ${e.message}`, 'error');
+          return;
+        }
+
+        if (response.ok && data.ok) {
+          log('loginResult', '✓ 로그인 성공!', 'success');
+          log('loginResult', '쿠키 확인 버튼을 눌러 세션 쿠키를 확인하세요.', 'info');
+        } else {
+          log('loginResult', `✗ 로그인 실패: ${data.error || '알 수 없는 오류'}`, 'error');
+        }
+        
+      } catch (error) {
+        log('loginResult', `✗ 요청 실패: ${error.message}`, 'error');
+        log('loginResult', 'Functions가 배포되었는지 확인하세요!', 'error');
+      }
+    }
+
+    function checkCookies() {
+      clear('cookieResult');
+      log('cookieResult', '쿠키 확인 중...', 'info');
+      
+      const cookies = document.cookie.split(';').map(c => c.trim());
+      
+      if (cookies.length === 0 || (cookies.length === 1 && cookies[0] === '')) {
+        log('cookieResult', '쿠키 없음', 'error');
+        return;
+      }
+      
+      cookies.forEach(cookie => {
+        const [name, ...valueParts] = cookie.split('=');
+        const value = valueParts.join('=');
+        
+        if (name === 'nr_session') {
+          log('cookieResult', `✓ ${name}: ${value.substring(0, 30)}...`, 'success');
+          log('cookieResult', '세션 쿠키 발견! 인증되었습니다.', 'success');
+        } else {
+          log('cookieResult', `${name}: ${value}`, 'info');
+        }
+      });
+      
+      const hasSession = cookies.some(c => c.startsWith('nr_session='));
+      if (!hasSession) {
+        log('cookieResult', '✗ nr_session 쿠키가 없습니다', 'error');
+        log('cookieResult', '로그인이 필요하거나 쿠키 설정에 문제가 있습니다', 'error');
+      }
+    }
+
+    async function testPlayAccess() {
+      clear('playResult');
+      log('playResult', 'play.html 접근 테스트 중...', 'info');
+      
+      try {
+        const response = await fetch('/play.html', {
+          credentials: 'same-origin'
+        });
+        
+        log('playResult', `응답 상태: ${response.status} ${response.statusText}`, 
+            response.ok ? 'success' : 'error');
+        
+        if (response.status === 200) {
+          log('playResult', '✓ play.html 접근 가능!', 'success');
+          log('playResult', '인증이 제대로 작동하고 있습니다.', 'success');
+        } else if (response.status === 403) {
+          log('playResult', '✗ 접근 거부 (403)', 'error');
+          log('playResult', '세션 쿠키가 없거나 만료되었습니다', 'error');
+        } else if (response.status === 302 || response.status === 301) {
+          log('playResult', '리다이렉트 됨 (로그인 필요)', 'error');
+        } else {
+          log('playResult', '예상치 못한 응답', 'error');
+        }
+        
+      } catch (error) {
+        log('playResult', `✗ 요청 실패: ${error.message}`, 'error');
+      }
+    }
+
+    // Auto-run environment check
+    window.addEventListener('load', () => {
+      checkEnv();
+    });
+  </script>
+</body>
+</html>
