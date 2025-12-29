@@ -34,16 +34,50 @@ export async function onRequestPost({ request, env }) {
       );
     }
 
+    const normalize = (value) => {
+      if (value == null) return '';
+      return (typeof value === 'string' ? value : String(value)).trim();
+    };
     const { password } = body;
 
     // Check environment variables
-    const expectedPassword = env.GAME_PASSWORD || '';
-    const sessionSecret = env.SESSION_SECRET || 'dev_secret_change_me';
+    const expectedPassword = normalize(env.GAME_PASSWORD);
+    const sessionSecret = normalize(env.SESSION_SECRET) || 'dev_secret_change_me';
+
+    if (!expectedPassword) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'CONFIG_MISSING', 
+          message: 'GAME_PASSWORD is not configured. Set the environment variable and redeploy.' 
+        }),
+        { 
+          status: 500,
+          headers: { 'content-type': 'application/json' }
+        }
+      );
+    }
 
     // Validate password
-    if (!password || password !== expectedPassword) {
+    const providedPassword = normalize(password);
+    if (!providedPassword) {
       return new Response(
-        JSON.stringify({ error: 'DENIED' }),
+        JSON.stringify({ 
+          error: 'MISSING_PASSWORD', 
+          message: 'Password is required' 
+        }),
+        { 
+          status: 400,
+          headers: { 'content-type': 'application/json' }
+        }
+      );
+    }
+
+    if (providedPassword !== expectedPassword) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'INVALID_PASSWORD',
+          message: 'Password is incorrect. Check GAME_PASSWORD in Cloudflare settings and redeploy.' 
+        }),
         { 
           status: 401,
           headers: { 'content-type': 'application/json' }

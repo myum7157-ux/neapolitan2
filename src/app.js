@@ -96,6 +96,18 @@ async function gateLogin(password){
       const text = await response.text().catch(() => '');
       debugLog(`응답 내용: ${text}`, 'error');
       
+      let serverError = text;
+      let errorCode = '';
+      if (text) {
+        try {
+          const parsed = JSON.parse(text);
+          serverError = parsed.message || parsed.error || text;
+          errorCode = parsed.error || '';
+        } catch (_) {
+          serverError = text;
+        }
+      }
+      
       // 404면 Functions 미배포
       if (response.status === 404) {
         throw new Error('로그인 API를 찾을 수 없습니다. Functions가 배포되었는지 확인하세요.');
@@ -103,10 +115,19 @@ async function gateLogin(password){
       
       // 401이면 비밀번호 틀림
       if (response.status === 401) {
-        throw new Error('비밀번호가 틀렸습니다. Cloudflare 환경변수(GAME_PASSWORD)를 확인하세요.');
+        throw new Error(serverError || '비밀번호가 틀렸습니다. Cloudflare 환경변수(GAME_PASSWORD)를 확인하세요.');
+      }
+
+      // 환경 변수 미설정 등 서버 설정 오류
+      if (response.status === 500 && errorCode === 'CONFIG_MISSING') {
+        throw new Error('서버 설정 오류: GAME_PASSWORD가 설정되지 않았습니다. Cloudflare 환경변수를 추가하고 재배포하세요.');
+      }
+
+      if (response.status === 400 && errorCode === 'MISSING_PASSWORD') {
+        throw new Error('비밀번호를 입력하세요.');
       }
       
-      throw new Error(text || 'DENIED');
+      throw new Error(serverError || 'DENIED');
     }
 
     const data = await response.json();

@@ -9,6 +9,8 @@ Settings > Environment Variables
 
 GAME_PASSWORD=your_actual_password
 SESSION_SECRET=random_secret_at_least_32_chars
+미설정 시 /api/auth/login 이 CONFIG_MISSING(500) 에러를 반환합니다
+비밀번호가 틀리면 INVALID_PASSWORD(401) 응답이 오며, 환경 변수/입력 값을 다시 확인해야 합니다
 중요: 환경 변수를 추가하거나 수정한 후에는 다시 배포해야 적용됩니다!
 2. 브라우저 콘솔 확인
 
