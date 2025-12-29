@@ -3,16 +3,40 @@ export async function onRequest(context) {
   const url = new URL(request.url);
   const path = url.pathname;
 
-  const isPublic = (path === '/' || path === '/index.html' || path.startsWith('/styles/') || path.startsWith('/favicon') || path.startsWith('/api/auth/'));
-  if (isPublic) return next();
+  // Public paths that don't require authentication
+  const publicPaths = [
+    '/',
+    '/index.html',
+    '/favicon.ico',
+  ];
 
-  const cookie = request.headers.get('cookie') || '';
-  const hasSession = cookie.includes('nr_session=');
+  const publicPrefixes = [
+    '/styles/',
+    '/assets/',
+    '/data/',
+    '/src/',
+    '/api/auth/',
+  ];
 
-  // Protect everything else (including /assets, /data, /src, /play.html)
-  if (!hasSession) {
-    return new Response('FORBIDDEN', { status: 403 });
+  // Check if path is public
+  const isPublic = publicPaths.includes(path) || 
+    publicPrefixes.some(prefix => path.startsWith(prefix));
+
+  if (isPublic) {
+    return next();
   }
+
+  // Check for session cookie
+  const cookie = request.headers.get('cookie') || '';
+  const sessionMatch = cookie.match(/nr_session=([^;]+)/);
+  
+  if (!sessionMatch) {
+    // Redirect to login instead of showing FORBIDDEN
+    return Response.redirect(url.origin + '/', 302);
+  }
+
+  // Optional: Verify session signature here
+  // For now, just check if cookie exists
 
   return next();
 }
