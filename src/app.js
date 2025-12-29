@@ -1,4 +1,4 @@
-// Napolitan Relay Starter — v12 (Fixed Auth)
+// Napolitan Relay Starter — v13 (Improved Debugging + Hint Overlay)
 const $ = (id) => document.getElementById(id);
 
 const state = {
@@ -9,6 +9,7 @@ const state = {
   wills: [],
   deaths: [],
   rank: [],
+  debugMode: true, // 디버그 모드 활성화
 };
 
 function esc(s){ return String(s ?? '').replace(/[&<>"']/g, (c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
@@ -42,34 +43,78 @@ function img(section, key){
 function isGatePage(){ return document.body.classList.contains('gate'); }
 function isPlayPage(){ return document.body.classList.contains('play'); }
 
-// -------- Gate Login (IMPROVED) --------
+// 디버그 로그 함수
+function debugLog(message, type = 'info') {
+  if (!state.debugMode) return;
+  
+  const colors = {
+    info: '#4d9fff',
+    success: '#4dff4d',
+    error: '#ff4d4d',
+    warning: '#ffa94d'
+  };
+  
+  console.log(`%c[DEBUG] ${message}`, `color: ${colors[type]}`);
+  
+  // 화면에도 표시 (선택적)
+  let debugDiv = document.querySelector('.debug-info');
+  if (!debugDiv) {
+    debugDiv = document.createElement('div');
+    debugDiv.className = 'debug-info';
+    document.body.appendChild(debugDiv);
+  }
+  
+  const time = new Date().toLocaleTimeString();
+  debugDiv.innerHTML = `[${time}] ${message}`;
+  
+  setTimeout(() => {
+    if (debugDiv.parentNode) {
+      debugDiv.style.opacity = '0';
+      setTimeout(() => debugDiv.remove(), 500);
+    }
+  }, 5000);
+}
+
+// -------- Gate Login (IMPROVED with better debugging) --------
 async function gateLogin(password){
   try {
+    debugLog(`로그인 시도 - 비밀번호 길이: ${password.length}`, 'info');
+    
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 
         'content-type': 'application/json',
         'accept': 'application/json'
       },
-      credentials: 'same-origin', // Important for cookies
+      credentials: 'same-origin',
       body: JSON.stringify({ password })
     });
 
-    // Log for debugging
-    console.log('Login response status:', response.status);
+    debugLog(`응답 상태: ${response.status}`, response.ok ? 'success' : 'error');
 
     if (!response.ok) {
       const text = await response.text().catch(() => '');
-      console.error('Login failed:', text);
+      debugLog(`응답 내용: ${text}`, 'error');
+      
+      // 404면 Functions 미배포
+      if (response.status === 404) {
+        throw new Error('로그인 API를 찾을 수 없습니다. Functions가 배포되었는지 확인하세요.');
+      }
+      
+      // 401이면 비밀번호 틀림
+      if (response.status === 401) {
+        throw new Error('비밀번호가 틀렸습니다. Cloudflare 환경변수(GAME_PASSWORD)를 확인하세요.');
+      }
+      
       throw new Error(text || 'DENIED');
     }
 
     const data = await response.json();
-    console.log('Login success:', data);
+    debugLog('로그인 성공!', 'success');
     return data;
 
   } catch (error) {
-    console.error('Login error:', error);
+    debugLog(`로그인 에러: ${error.message}`, 'error');
     throw error;
   }
 }
@@ -133,17 +178,19 @@ function bindGate(){
 
   async function doLogin(){
     msg.textContent='처리중...';
+    msg.style.color = '#4d9fff';
     
     try{
       btnLogin.disabled = true;
       
       const inputPassword = pw.value.trim();
-      console.log('Attempting login with password length:', inputPassword.length);
       
       if (!inputPassword) {
         throw new Error('비밀번호를 입력하세요');
       }
 
+      debugLog(`입력된 비밀번호: ${inputPassword}`, 'info');
+      
       const res = await gateLogin(inputPassword);
       
       if (res.ok) {
@@ -151,9 +198,9 @@ function bindGate(){
         msg.textContent = 'ACCESS GRANTED';
         msg.style.color = '#4dff4d';
         
-        // Wait a bit before redirect
+        debugLog('리다이렉트 준비...', 'success');
+        
         setTimeout(()=> {
-          console.log('Redirecting to play.html...');
           window.location.href = '/play.html';
         }, 800);
       } else {
@@ -161,7 +208,7 @@ function bindGate(){
       }
       
     } catch(err){
-      console.error('Login error:', err);
+      debugLog(`에러 발생: ${err.message}`, 'error');
       flashOnce();
       showStamp(stampDenied);
       msg.textContent = err.message || 'ACCESS DENIED';
@@ -204,7 +251,7 @@ function bindGate(){
   }
 }
 
-// -------- MiniGame --------
+// -------- MiniGame (Improved hint display) --------
 const mini = {
   case: null,
   lives: 3,
@@ -253,6 +300,7 @@ function startMini(){
   mini.saidIndex = { A:0, B:0, C:0, D:0, E:0 };
   mini.finished = false;
   renderMini();
+  debugLog('미니게임 시작', 'info');
 }
 
 function bindMini(){
@@ -282,16 +330,21 @@ function bindMini(){
     if(mini.accused === liar){
       mini.finished = true;
       $('miniMsg').textContent = mini.usedHint ? '성공(힌트 사용: 랭킹 미등재)' : '성공';
+      $('miniMsg').style.color = '#4dff4d';
       $('btnMiniHint').disabled = true;
+      debugLog('미니게임 성공!', 'success');
       return;
     }
 
     mini.lives -= 1;
     $('miniMsg').textContent = `오답. 남은 목숨 ${mini.lives}/3`;
+    $('miniMsg').style.color = '#ff4d4d';
+    
     if(mini.lives <= 0){
       mini.finished = true;
       $('miniMsg').textContent = '게임 오버';
       $('btnMiniHint').disabled = true;
+      debugLog('미니게임 실패', 'error');
       renderMini();
       $('miniMsg').textContent = '게임 오버. RESTART';
       return;
@@ -300,6 +353,7 @@ function bindMini(){
     if(mini.lives === 2){
       $('miniRuleBox').classList.remove('hidden');
       $('miniRuleText').textContent = mini.case.ruleReveal ?? '';
+      debugLog('규칙 공개!', 'warning');
     }
 
     if(mini.lives === 1){
@@ -309,6 +363,8 @@ function bindMini(){
 
     renderMini();
     $('miniMsg').textContent = `오답. 남은 목숨 ${mini.lives}/3` + (mini.lives===1?' · 마지막 기회':'');
+    $('miniMsg').style.color = '#ff4d4d';
+    
     if(mini.lives===2){
       $('miniRuleBox').classList.remove('hidden');
       $('miniRuleText').textContent = mini.case.ruleReveal ?? '';
@@ -321,6 +377,8 @@ function bindMini(){
     $('miniHintBadge').classList.remove('hidden');
     $('btnMiniHint').disabled = true;
     $('miniMsg').textContent = (mini.case?.hint ?? '힌트 없음') + ' (힌트 사용: 랭킹 미등재)';
+    $('miniMsg').style.color = '#ffa94d';
+    debugLog('힌트 사용!', 'warning');
   });
 
   $('btnMiniRestart').addEventListener('click', startMini);
@@ -428,7 +486,7 @@ function bindPlay(){
 // -------- Init --------
 async function init(){
   try {
-    console.log('Initializing app...');
+    debugLog('앱 초기화 시작...', 'info');
     
     state.images = await fetchJSON('/data/manifests/images.json');
     state.audio = await fetchJSON('/data/manifests/audio.json');
@@ -436,10 +494,10 @@ async function init(){
     state.cases = await fetchJSON('/data/minigame_cases.json');
     room1Story.data = await fetchJSON('/data/room1_story.json');
 
-    console.log('Data loaded successfully');
+    debugLog('데이터 로드 완료', 'success');
 
     if(isGatePage()){
-      console.log('Gate page detected');
+      debugLog('게이트 페이지 바인딩', 'info');
       bindGate();
       bindMini();
       
@@ -454,7 +512,7 @@ async function init(){
     }
 
     if(isPlayPage()){
-      console.log('Play page detected');
+      debugLog('플레이 페이지 바인딩', 'info');
       setBG(state.config.ui.room1.defaultBg);
       setOverlays(state.config.ui.room1.defaultOverlays);
       $('phaseChip').textContent='LOBBY';
@@ -463,6 +521,7 @@ async function init(){
     }
     
   } catch(e) {
+    debugLog(`초기화 에러: ${e.message}`, 'error');
     console.error('Init error:', e);
     document.body.innerHTML = `
       <div style="padding:24px;color:#ff4d4d;font-family:monospace">
