@@ -18,77 +18,86 @@ async function hmac(secret, msg) {
   return b64url(sig);
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost(context) {
+  const { request, env } = context;
+
   try {
-    // Parse request body
     let body;
     try {
       body = await request.json();
-    } catch (e) {
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+        status: 400,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
+
+    const providedPassword = String(body?.password ?? '').trim();
+
+    // IMPORTANT: env 값에 개행이 섞이는 경우가 많아서 trim
+    const expectedPassword = String(env?.GAME_PASSWORD ?? '').trim();
+    const sessionSecret = String(env?.SESSION_SECRET ?? '').trim();
+
+    // env가 안 내려온 상태면 DENIED가 아니라 "서버 설정 문제"로 바로 드러내기
+    if (!expectedPassword) {
       return new Response(
-        JSON.stringify({ error: 'Invalid JSON' }),
-        { 
-          status: 400,
-          headers: { 'content-type': 'application/json' }
-        }
+        JSON.stringify({
+          error: 'SERVER_MISCONFIG',
+          detail: 'GAME_PASSWORD is not set for this deployment environment.',
+          // 값은 절대 노출 안 하고, 존재 여부만
+          hasGamePassword: !!env?.GAME_PASSWORD,
+          hasSessionSecret: !!env?.SESSION_SECRET,
+        }),
+        { status: 500, headers: { 'content-type': 'application/json' } }
       );
     }
 
-    const { password } = body;
-
-    // Check environment variables
-    const expectedPassword = env.GAME_PASSWORD || '';
-    const sessionSecret = env.SESSION_SECRET || 'dev_secret_change_me';
-
-    // Validate password
-    if (!password || password !== expectedPassword) {
+    if (!sessionSecret) {
       return new Response(
-        JSON.stringify({ error: 'DENIED' }),
-        { 
-          status: 401,
-          headers: { 'content-type': 'application/json' }
-        }
+        JSON.stringify({
+          error: 'SERVER_MISCONFIG',
+          detail: 'SESSION_SECRET is not set for this deployment environment.',
+          hasGamePassword: !!env?.GAME_PASSWORD,
+          hasSessionSecret: !!env?.SESSION_SECRET,
+        }),
+        { status: 500, headers: { 'content-type': 'application/json' } }
       );
     }
 
-    // Create session token
+    // 비밀번호 검증
+    if (!providedPassword || providedPassword !== expectedPassword) {
+      return new Response(JSON.stringify({ error: 'DENIED' }), {
+        status: 401,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
+
+    // 세션 토큰 생성
     const ts = Date.now();
     const payload = `v1.${ts}`;
     const sig = await hmac(sessionSecret, payload);
     const token = `${payload}.${sig}`;
 
-    // Set cookie with appropriate flags
     const headers = new Headers({ 'content-type': 'application/json' });
-    
-    // Use Secure flag only in production
+
     const isSecure = new URL(request.url).protocol === 'https:';
     const cookieFlags = [
       `nr_session=${token}`,
       'Path=/',
       'HttpOnly',
       'SameSite=Lax',
-      'Max-Age=86400'
+      'Max-Age=86400',
     ];
-    
-    if (isSecure) {
-      cookieFlags.push('Secure');
-    }
-    
+    if (isSecure) cookieFlags.push('Secure');
+
     headers.append('set-cookie', cookieFlags.join('; '));
 
-    return new Response(
-      JSON.stringify({ ok: true }),
-      { status: 200, headers }
-    );
-
-  } catch (error) {
-    console.error('Login error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { 
-        status: 500,
-        headers: { 'content-type': 'application/json' }
-      }
-    );
+    return new Response(JSON.stringify({ ok: true }), { status: 200, headers });
+  } catch (e) {
+    console.error('Login error:', e);
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { 'content-type': 'application/json' },
+    });
   }
 }
