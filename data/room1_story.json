@@ -1,0 +1,515 @@
+{
+  "nodes": [
+    {
+      "id": "n1",
+      "bg": "r1_bg_lobby_01",
+      "text": "너는 로비에 서 있다. 형광등이 깜빡이고, 어딘가에서 물이 떨어지는 소리가 들린다.",
+      "choices": [
+        {
+          "label": "복도로 이동한다",
+          "type": "goto",
+          "next": "n2"
+        },
+        {
+          "label": "CCTV실로 간다",
+          "type": "goto",
+          "next": "n3"
+        },
+        {
+          "label": "엘리베이터를 확인한다",
+          "type": "goto",
+          "next": "n4"
+        },
+        {
+          "label": "바닥의 핏자국을 조사한다",
+          "type": "death",
+          "deathType": "death_report_01_rulebreak",
+          "deathMsg": "바닥에 손을 대는 순간, 무언가가 너를 잡아끌었다.",
+          "dangerHint": true
+        }
+      ]
+    },
+    {
+      "id": "n2",
+      "bg": "r1_bg_corridor_01",
+      "text": "복도는 끝이 보이지 않는다. 좌우에 문이 있고, 정면에도 문이 하나 있다.",
+      "statChange": { "progress": 10 },
+      "choices": [
+        {
+          "label": "왼쪽 문을 연다",
+          "type": "goto",
+          "next": "n5"
+        },
+        {
+          "label": "오른쪽 문을 연다",
+          "type": "death",
+          "deathType": "death_report_02_trap",
+          "deathMsg": "문이 열리자 날카로운 것이 목을 스쳤다.",
+          "dangerHint": true
+        },
+        {
+          "label": "정면 문으로 간다",
+          "type": "goto",
+          "next": "n6"
+        },
+        {
+          "label": "뒤로 돌아간다",
+          "type": "goto",
+          "next": "n1"
+        }
+      ]
+    },
+    {
+      "id": "n3",
+      "bg": "r1_bg_cctvroom_01",
+      "text": "모니터가 희미하게 빛난다. 화면에 무언가 움직이는 것이 보인다.",
+      "statChange": { "sanity": -10, "progress": 5 },
+      "choices": [
+        {
+          "label": "모니터를 3초 이상 응시한다",
+          "type": "death",
+          "deathType": "death_report_01_rulebreak",
+          "deathMsg": "규칙: CCTV 화면은 3초 이상 응시하지 말 것.",
+          "dangerHint": true
+        },
+        {
+          "label": "전원을 내린다",
+          "type": "stat",
+          "statChange": { "progress": 10 },
+          "next": "n7"
+        },
+        {
+          "label": "서류함을 뒤진다",
+          "type": "goto",
+          "next": "n8"
+        },
+        {
+          "label": "로비로 돌아간다",
+          "type": "goto",
+          "next": "n1"
+        }
+      ]
+    },
+    {
+      "id": "n4",
+      "bg": "r1_bg_elevator_01",
+      "text": "엘리베이터는 멈춰 있다. 버튼을 누르면 작동할 것 같다.",
+      "choices": [
+        {
+          "label": "버튼을 누른다",
+          "type": "death",
+          "deathType": "death_report_02_trap",
+          "deathMsg": "엘리베이터 문이 열리고, 안에서 손이 너를 잡아끌었다.",
+          "dangerHint": true
+        },
+        {
+          "label": "계단을 찾는다",
+          "type": "goto",
+          "next": "n9"
+        },
+        {
+          "label": "엘리베이터 틈을 들여다본다",
+          "type": "stat",
+          "statChange": { "sanity": -15 },
+          "next": "n10"
+        },
+        {
+          "label": "로비로 돌아간다",
+          "type": "goto",
+          "next": "n1"
+        }
+      ]
+    },
+    {
+      "id": "n5",
+      "bg": "r1_bg_archive_01",
+      "text": "기록실이다. 서류가 산더미처럼 쌓여 있다. 일부는 찢겨져 있다.",
+      "statChange": { "progress": 15 },
+      "choices": [
+        {
+          "label": "\"17번 파일\"을 찾는다",
+          "type": "goto",
+          "next": "n11"
+        },
+        {
+          "label": "찢어진 서류를 읽는다",
+          "type": "stat",
+          "statChange": { "sanity": -5, "progress": 5 },
+          "next": "n12"
+        },
+        {
+          "label": "숨겨진 문을 찾는다",
+          "type": "goto",
+          "next": "n13"
+        },
+        {
+          "label": "복도로 돌아간다",
+          "type": "goto",
+          "next": "n2"
+        }
+      ]
+    },
+    {
+      "id": "n6",
+      "bg": "r1_bg_door_01",
+      "text": "정면의 문 앞에 섰다. 문에서 냉기가 느껴진다.",
+      "choices": [
+        {
+          "label": "문을 연다",
+          "type": "goto",
+          "next": "n14"
+        },
+        {
+          "label": "노크한다",
+          "type": "death",
+          "deathType": "death_report_02_trap",
+          "deathMsg": "노크 소리에 문이 열리고, 안에서 뭔가가 튀어나왔다.",
+          "dangerHint": true
+        },
+        {
+          "label": "문틈으로 들여다본다",
+          "type": "stat",
+          "statChange": { "sanity": -20 },
+          "next": "n14"
+        },
+        {
+          "label": "복도로 돌아간다",
+          "type": "goto",
+          "next": "n2"
+        }
+      ]
+    },
+    {
+      "id": "n7",
+      "bg": "r1_bg_cctvroom_01",
+      "text": "모니터가 꺼지고, 방 안이 어두워졌다. 하지만 어딘가 안도감이 든다.",
+      "statChange": { "sanity": 5 },
+      "choices": [
+        {
+          "label": "출구를 찾는다",
+          "type": "goto",
+          "next": "n15"
+        },
+        {
+          "label": "어둠 속에서 손전등을 켠다",
+          "type": "goto",
+          "next": "n8"
+        },
+        {
+          "label": "로비로 돌아간다",
+          "type": "goto",
+          "next": "n1"
+        }
+      ]
+    },
+    {
+      "id": "n8",
+      "bg": "r1_bg_archive_01",
+      "text": "서류함에서 \"관측 기록\"이라고 적힌 파일을 발견했다.",
+      "statChange": { "progress": 10 },
+      "choices": [
+        {
+          "label": "파일을 읽는다",
+          "type": "stat",
+          "statChange": { "sanity": -10, "progress": 15 },
+          "next": "n16"
+        },
+        {
+          "label": "파일을 가져간다",
+          "type": "goto",
+          "next": "n15"
+        },
+        {
+          "label": "파일을 태운다",
+          "type": "death",
+          "deathType": "death_report_03_sacrifice",
+          "deathMsg": "불꽃이 손을 타고 올라왔다. 규칙: 증거를 인멸하지 말 것.",
+          "dangerHint": true
+        }
+      ]
+    },
+    {
+      "id": "n9",
+      "bg": "r1_bg_stair_01",
+      "text": "계단을 발견했다. 위로 올라가는 길과 아래로 내려가는 길이 있다.",
+      "statChange": { "progress": 10 },
+      "choices": [
+        {
+          "label": "위로 올라간다",
+          "type": "goto",
+          "next": "n15"
+        },
+        {
+          "label": "아래로 내려간다",
+          "type": "death",
+          "deathType": "death_report_02_trap",
+          "deathMsg": "계단이 무너지며 어둠 속으로 떨어졌다.",
+          "dangerHint": true
+        },
+        {
+          "label": "계단 벽의 낙서를 읽는다",
+          "type": "stat",
+          "statChange": { "sanity": -5, "progress": 5 },
+          "next": "n17"
+        },
+        {
+          "label": "엘리베이터로 돌아간다",
+          "type": "goto",
+          "next": "n4"
+        }
+      ]
+    },
+    {
+      "id": "n10",
+      "bg": "r1_bg_elevator_01",
+      "text": "틈 사이로 아래를 보았다. 깊은 어둠 속에서 눈이 올려다보고 있었다.",
+      "statChange": { "sanity": -20 },
+      "choices": [
+        {
+          "label": "눈을 마주친다",
+          "type": "death",
+          "deathType": "death_report_01_rulebreak",
+          "deathMsg": "규칙: 어둠 속의 눈과 마주치지 말 것.",
+          "dangerHint": true
+        },
+        {
+          "label": "고개를 돌린다",
+          "type": "goto",
+          "next": "n9"
+        },
+        {
+          "label": "도망친다",
+          "type": "goto",
+          "next": "n1"
+        }
+      ]
+    },
+    {
+      "id": "n11",
+      "bg": "r1_bg_archive_01",
+      "text": "17번 파일을 찾았다. 안에는 \"탈출 경로\"가 적혀 있다.",
+      "statChange": { "progress": 20 },
+      "choices": [
+        {
+          "label": "지도를 따라간다",
+          "type": "goto",
+          "next": "n15"
+        },
+        {
+          "label": "다른 파일도 확인한다",
+          "type": "stat",
+          "statChange": { "sanity": -5, "progress": 10 },
+          "next": "n12"
+        },
+        {
+          "label": "기록실을 나간다",
+          "type": "goto",
+          "next": "n2"
+        }
+      ]
+    },
+    {
+      "id": "n12",
+      "bg": "r1_bg_archive_01",
+      "text": "찢어진 서류에는 \"절대 돌아보지 마\"라고 반복해서 쓰여 있다.",
+      "statChange": { "sanity": -10 },
+      "choices": [
+        {
+          "label": "뒤를 돌아본다",
+          "type": "death",
+          "deathType": "death_report_01_rulebreak",
+          "deathMsg": "뒤를 돌아보는 순간, 무언가가 거기 있었다.",
+          "dangerHint": true
+        },
+        {
+          "label": "앞만 보고 나간다",
+          "type": "goto",
+          "next": "n15"
+        },
+        {
+          "label": "서류를 주머니에 넣는다",
+          "type": "stat",
+          "statChange": { "progress": 5 },
+          "next": "n2"
+        }
+      ]
+    },
+    {
+      "id": "n13",
+      "bg": "r1_bg_voidhall_01",
+      "text": "숨겨진 통로를 발견했다. 안에서 바람이 분다.",
+      "statChange": { "progress": 15 },
+      "choices": [
+        {
+          "label": "통로로 들어간다",
+          "type": "goto",
+          "next": "n18"
+        },
+        {
+          "label": "바람의 방향을 확인한다",
+          "type": "stat",
+          "statChange": { "progress": 5 },
+          "next": "n18"
+        },
+        {
+          "label": "통로를 무시한다",
+          "type": "goto",
+          "next": "n5"
+        }
+      ]
+    },
+    {
+      "id": "n14",
+      "bg": "r1_bg_infirmary_01",
+      "text": "의무실이다. 침대에 누군가 누워 있다... 아니, 있었던 것 같다.",
+      "statChange": { "sanity": -5, "progress": 10 },
+      "choices": [
+        {
+          "label": "침대를 조사한다",
+          "type": "stat",
+          "statChange": { "sanity": -10, "progress": 10 },
+          "next": "n15"
+        },
+        {
+          "label": "약품 캐비닛을 연다",
+          "type": "stat",
+          "statChange": { "hp": 20 },
+          "next": "n15"
+        },
+        {
+          "label": "창문을 확인한다",
+          "type": "death",
+          "deathType": "death_report_02_trap",
+          "deathMsg": "창문 너머로 손을 뻗는 순간, 유리가 깨지며 끌려갔다.",
+          "dangerHint": true
+        },
+        {
+          "label": "복도로 돌아간다",
+          "type": "goto",
+          "next": "n6"
+        }
+      ]
+    },
+    {
+      "id": "n15",
+      "bg": "r1_bg_stair_01",
+      "text": "출구가 가까워지고 있다. 계단 위에 빛이 보인다.",
+      "statChange": { "progress": 20 },
+      "choices": [
+        {
+          "label": "빛을 향해 달린다",
+          "type": "goto",
+          "next": "n19_end"
+        },
+        {
+          "label": "주변을 확인하고 천천히 간다",
+          "type": "stat",
+          "statChange": { "sanity": 5, "progress": 5 },
+          "next": "n19_end"
+        },
+        {
+          "label": "뒤에서 소리가 났다. 확인한다.",
+          "type": "death",
+          "deathType": "death_report_01_rulebreak",
+          "deathMsg": "규칙: 출구 앞에서 뒤를 돌아보지 말 것.",
+          "dangerHint": true
+        }
+      ]
+    },
+    {
+      "id": "n16",
+      "bg": "r1_bg_archive_01",
+      "text": "관측 기록에는 이상한 실험에 대한 내용이 적혀 있다. 머리가 아프다.",
+      "statChange": { "sanity": -15 },
+      "choices": [
+        {
+          "label": "계속 읽는다",
+          "type": "death",
+          "deathType": "death_report_05_special",
+          "deathMsg": "너무 많이 알게 되었다. 그들이 너를 찾아왔다.",
+          "dangerHint": true
+        },
+        {
+          "label": "파일을 덮는다",
+          "type": "goto",
+          "next": "n15"
+        },
+        {
+          "label": "핵심 내용만 기억한다",
+          "type": "stat",
+          "statChange": { "progress": 15 },
+          "next": "n15"
+        }
+      ]
+    },
+    {
+      "id": "n17",
+      "bg": "r1_bg_stair_01",
+      "text": "낙서: \"3층으로 가지 마. 그가 거기 있다.\"",
+      "choices": [
+        {
+          "label": "3층으로 간다",
+          "type": "death",
+          "deathType": "death_report_02_trap",
+          "deathMsg": "경고를 무시했다. 그가 거기 있었다.",
+          "dangerHint": true
+        },
+        {
+          "label": "2층으로 간다",
+          "type": "goto",
+          "next": "n15"
+        },
+        {
+          "label": "1층으로 돌아간다",
+          "type": "goto",
+          "next": "n1"
+        }
+      ]
+    },
+    {
+      "id": "n18",
+      "bg": "r1_bg_altar_01",
+      "text": "제단이 있는 방이다. 여긴 원래 이런 방이 아니었다.",
+      "statChange": { "sanity": -20, "progress": 20 },
+      "choices": [
+        {
+          "label": "제단에 다가간다",
+          "type": "death",
+          "deathType": "death_report_03_sacrifice",
+          "deathMsg": "제단이 너를 받아들였다.",
+          "dangerHint": true
+        },
+        {
+          "label": "벽에 적힌 글을 읽는다",
+          "type": "stat",
+          "statChange": { "sanity": -10, "progress": 10 },
+          "next": "n15"
+        },
+        {
+          "label": "뒤로 물러난다",
+          "type": "goto",
+          "next": "n13"
+        },
+        {
+          "label": "다른 출구를 찾는다",
+          "type": "goto",
+          "next": "n15"
+        }
+      ]
+    },
+    {
+      "id": "n19_end",
+      "bg": "r1_bg_lobby_01",
+      "text": "빛이 눈을 가린다. 문을 열고 나왔다. 탈출에 성공했다.",
+      "statChange": { "progress": 100 },
+      "choices": [
+        {
+          "label": "게임 종료",
+          "type": "death",
+          "deathType": "death_report_05_special",
+          "deathMsg": "축하합니다! Room 1을 클리어했습니다."
+        }
+      ]
+    }
+  ]
+}
