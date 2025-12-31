@@ -1,4 +1,4 @@
-// Napolitan Relay — v15 (Fixed)
+// Napolitan Relay — v16 (Full Redesign)
 const $ = (id) => document.getElementById(id);
 
 // ========================================
@@ -11,49 +11,50 @@ const state = {
   cases: null,
   storyData: null,
   
-  // 게임 상태 (localStorage에서 복원)
+  // 저장 데이터
   wills: [],
   deaths: [],
   rank: [],
   
-  // 플레이어 스탯
-  hp: 100,
-  sanity: 100,
-  score: 0,
+  // 플레이어 상태
+  currentRoom: 1,
+  currentStep: 0,      // 진행 단계 (선택지 통과 횟수)
+  gameStartTime: null, // 생존 시간 측정
+  timerInterval: null,
   
   // 현재 노드
   currentNode: null,
-  currentRoom: 1,
   
-  // 게임 시작 시간 (점수 계산용)
-  gameStartTime: null,
-  
-  // 대기열 (실제 서버 연동 전까지는 테스트 모드)
+  // 대기열
   queue: {
-    total: 0,      // 테스트 모드: 나만 접속
-    position: 1,   // 내 순번
-    playing: 0     // 현재 플레이 중인 사람 수
+    total: 0,
+    position: 1,
+    playing: 0
   },
   
   // 밴 상태
   isBanned: false,
   
-  // 오디오 객체
+  // 오디오
+  audioInitialized: false,
   bgmPlayer: null,
-  sfxPlayers: {}
+  currentBgm: null,
+  
+  // 마지막 사망 정보 (카드 생성용)
+  lastDeath: null
 };
 
 // ========================================
-// LocalStorage 키
+// Storage Keys
 // ========================================
-const STORAGE_KEYS = {
+const STORAGE = {
   BAN_EXPIRY: 'nr_ban_expiry',
   WILLS: 'nr_wills',
   DEATHS: 'nr_deaths',
   RANK: 'nr_rank'
 };
 
-const BAN_DURATION = 24 * 60 * 60 * 1000; // 24시간
+const BAN_DURATION = 24 * 60 * 60 * 1000;
 
 // ========================================
 // 유틸리티
@@ -85,35 +86,47 @@ function img(section, key) {
 function isGatePage() { return document.body.classList.contains('gate'); }
 function isPlayPage() { return document.body.classList.contains('play'); }
 
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
 // ========================================
-// 오디오 시스템
+// 오디오 시스템 (수정됨)
 // ========================================
 function initAudio() {
+  if (state.audioInitialized) return;
+  
   state.bgmPlayer = new Audio();
   state.bgmPlayer.loop = true;
   state.bgmPlayer.volume = 0.3;
+  state.audioInitialized = true;
 }
 
 function playBGM(key) {
-  if (!state.audio?.bgm?.[key] || !state.bgmPlayer) return;
+  if (!state.audio?.bgm?.[key]) return;
+  if (!state.bgmPlayer) initAudio();
   
   const src = state.audio.bgm[key];
-  if (state.bgmPlayer.src !== src) {
-    state.bgmPlayer.src = src;
-    state.bgmPlayer.play().catch(() => {
-      // 자동 재생 차단됨 - 사용자 상호작용 필요
-      console.log('BGM autoplay blocked');
-    });
-  }
+  if (state.currentBgm === key) return;
+  
+  state.currentBgm = key;
+  state.bgmPlayer.src = src;
+  state.bgmPlayer.play().catch(() => {
+    // 자동재생 차단됨 - 다음 클릭에서 재시도
+  });
 }
 
 function stopBGM() {
   if (state.bgmPlayer) {
     state.bgmPlayer.pause();
     state.bgmPlayer.currentTime = 0;
+    state.currentBgm = null;
   }
 }
 
+// SFX - 상황에 맞게 분리
 function playSFX(key) {
   if (!state.audio?.sfx?.[key]) return;
   
@@ -122,142 +135,157 @@ function playSFX(key) {
   audio.play().catch(() => {});
 }
 
+// UI 클릭용 (가벼운 소리)
+function playClick() {
+  playSFX('sfx_ui_click_01');
+  
+  // BGM 자동재생 재시도
+  if (state.bgmPlayer && state.currentBgm && state.bgmPlayer.paused) {
+    state.bgmPlayer.play().catch(() => {});
+  }
+}
+
+// 사망용
+function playDeathSound() {
+  playSFX('sfx_death_hit_01');
+}
+
 // ========================================
-// 24시간 밴 시스템
+// 밴 시스템
 // ========================================
-function checkGameOverBan() {
-  const expiry = localStorage.getItem(STORAGE_KEYS.BAN_EXPIRY);
+function checkBan() {
+  const expiry = localStorage.getItem(STORAGE.BAN_EXPIRY);
   if (!expiry) return false;
   
-  const expiryTime = parseInt(expiry, 10);
-  if (Date.now() >= expiryTime) {
-    localStorage.removeItem(STORAGE_KEYS.BAN_EXPIRY);
+  if (Date.now() >= parseInt(expiry, 10)) {
+    localStorage.removeItem(STORAGE.BAN_EXPIRY);
     return false;
   }
   return true;
 }
 
-function setGameOverBan() {
+function setBan() {
   const expiry = Date.now() + BAN_DURATION;
-  localStorage.setItem(STORAGE_KEYS.BAN_EXPIRY, expiry.toString());
+  localStorage.setItem(STORAGE.BAN_EXPIRY, expiry.toString());
   state.isBanned = true;
 }
 
-function getBanTimeRemaining() {
-  const expiry = localStorage.getItem(STORAGE_KEYS.BAN_EXPIRY);
+function getBanRemaining() {
+  const expiry = localStorage.getItem(STORAGE.BAN_EXPIRY);
   if (!expiry) return 0;
   return Math.max(0, parseInt(expiry, 10) - Date.now());
 }
 
-function formatTimeRemaining(ms) {
-  const hours = Math.floor(ms / (1000 * 60 * 60));
-  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((ms % (1000 * 60)) / 1000);
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+function formatBanTime(ms) {
+  const h = Math.floor(ms / (1000 * 60 * 60));
+  const m = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+  const s = Math.floor((ms % (1000 * 60)) / 1000);
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
-// 밴 상태 표시 (게임 차단하지 않고 배너로만 표시)
 function showBanNotice() {
-  const banNotice = $('banNotice');
-  if (!banNotice) return;
+  const notice = $('banNotice');
+  if (!notice) return;
   
-  banNotice.classList.remove('hidden');
+  notice.classList.remove('hidden');
   
-  function updateCountdown() {
-    const remaining = getBanTimeRemaining();
+  function tick() {
+    const remaining = getBanRemaining();
     if (remaining <= 0) {
-      banNotice.classList.add('hidden');
+      notice.classList.add('hidden');
       state.isBanned = false;
       updateQueueDisplay();
       return;
     }
-    $('banCountdown').textContent = formatTimeRemaining(remaining);
-    setTimeout(updateCountdown, 1000);
+    $('banCountdown').textContent = formatBanTime(remaining);
+    setTimeout(tick, 1000);
   }
-  
-  updateCountdown();
+  tick();
 }
 
 // ========================================
-// LocalStorage 데이터 관리
+// 데이터 저장/로드
 // ========================================
-function loadStoredData() {
+function loadData() {
   try {
-    const willsJson = localStorage.getItem(STORAGE_KEYS.WILLS);
-    const deathsJson = localStorage.getItem(STORAGE_KEYS.DEATHS);
-    const rankJson = localStorage.getItem(STORAGE_KEYS.RANK);
-    
-    if (willsJson) state.wills = JSON.parse(willsJson);
-    if (deathsJson) state.deaths = JSON.parse(deathsJson);
-    if (rankJson) state.rank = JSON.parse(rankJson);
-  } catch (e) {
-    console.error('Failed to load stored data:', e);
-  }
+    const w = localStorage.getItem(STORAGE.WILLS);
+    const d = localStorage.getItem(STORAGE.DEATHS);
+    const r = localStorage.getItem(STORAGE.RANK);
+    if (w) state.wills = JSON.parse(w);
+    if (d) state.deaths = JSON.parse(d);
+    if (r) state.rank = JSON.parse(r);
+  } catch (e) { console.error(e); }
 }
 
-function saveStoredData() {
+function saveData() {
   try {
-    localStorage.setItem(STORAGE_KEYS.WILLS, JSON.stringify(state.wills));
-    localStorage.setItem(STORAGE_KEYS.DEATHS, JSON.stringify(state.deaths));
-    localStorage.setItem(STORAGE_KEYS.RANK, JSON.stringify(state.rank));
-  } catch (e) {
-    console.error('Failed to save data:', e);
-  }
+    localStorage.setItem(STORAGE.WILLS, JSON.stringify(state.wills));
+    localStorage.setItem(STORAGE.DEATHS, JSON.stringify(state.deaths));
+    localStorage.setItem(STORAGE.RANK, JSON.stringify(state.rank));
+  } catch (e) { console.error(e); }
 }
 
-function addWill(text, deathType) {
-  if (!text || !text.trim()) return;
+function addWill(text, deathInfo) {
+  if (!text?.trim()) return;
   
   state.wills.unshift({
     text: text.trim(),
+    room: deathInfo.room,
+    step: deathInfo.step,
+    deathType: deathInfo.type,
     time: new Date().toLocaleString('ko-KR'),
-    deathType: deathType || 'UNKNOWN',
-    room: state.currentRoom
+    timestamp: Date.now()
   });
   
-  // 최대 100개까지만 저장
   if (state.wills.length > 100) state.wills.pop();
-  saveStoredData();
+  saveData();
 }
 
-function addDeath(type, msg) {
-  state.deaths.unshift({
-    type: type || 'UNKNOWN',
-    msg: msg || '',
+function addDeath(type, msg, room, step, survivalTime) {
+  const record = {
+    type,
+    msg,
+    room,
+    step,
+    survivalTime,
     time: new Date().toLocaleString('ko-KR'),
-    room: state.currentRoom,
-    score: state.score
-  });
+    timestamp: Date.now()
+  };
   
+  state.deaths.unshift(record);
   if (state.deaths.length > 100) state.deaths.pop();
-  saveStoredData();
-}
-
-function addToRank(name, score, clearTime) {
-  state.rank.push({ name, score, time: clearTime });
-  state.rank.sort((a, b) => b.score - a.score);
+  saveData();
+  
+  // 랭킹에도 추가 (진행 단계 기준)
+  state.rank.push({
+    step,
+    room,
+    survivalTime,
+    time: new Date().toLocaleString('ko-KR')
+  });
+  state.rank.sort((a, b) => b.step - a.step);
   if (state.rank.length > 50) state.rank.pop();
-  saveStoredData();
+  saveData();
+  
+  return record;
 }
 
 // ========================================
-// 게이트 페이지 (로그인)
+// 게이트 페이지
 // ========================================
 async function gateLogin(password) {
-  const response = await fetch('/api/auth/login', {
+  const res = await fetch('/api/auth/login', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     credentials: 'same-origin',
     body: JSON.stringify({ password })
   });
 
-  if (!response.ok) {
-    if (response.status === 404) throw new Error('API를 찾을 수 없습니다');
-    if (response.status === 401) throw new Error('비밀번호가 틀렸습니다');
+  if (!res.ok) {
+    if (res.status === 401) throw new Error('비밀번호가 틀렸습니다');
     throw new Error('로그인 실패');
   }
-
-  return response.json();
+  return res.json();
 }
 
 function bindGate() {
@@ -265,37 +293,16 @@ function bindGate() {
   const msg = $('gateMsg');
   const btnLogin = $('btnLogin');
   const keypad = $('keypad');
-  const stampGranted = $('gateStampGranted');
-  const stampDenied = $('gateStampDenied');
-  const flash = $('gateFlash');
 
-  const showStamp = (el) => {
-    if (!el) return;
-    el.style.opacity = '1';
-    el.style.transform = 'rotate(-12deg) scale(1)';
-    setTimeout(() => {
-      el.style.opacity = '0';
-      el.style.transform = 'rotate(-12deg) scale(.9)';
-    }, 900);
-  };
-
-  const flashOnce = () => {
-    if (!flash) return;
-    flash.style.opacity = '1';
-    setTimeout(() => flash.style.opacity = '0', 120);
-  };
-
-  if (keypad) {
-    keypad.addEventListener('click', e => {
-      const b = e.target.closest('button');
-      if (!b) return;
-      playSFX('sfx_ui_click_01');
-      const k = b.dataset.k;
-      if (k === 'clr') pw.value = '';
-      else if (k === 'del') pw.value = pw.value.slice(0, -1);
-      else pw.value += k;
-    });
-  }
+  keypad?.addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    playClick();
+    const k = b.dataset.k;
+    if (k === 'clr') pw.value = '';
+    else if (k === 'del') pw.value = pw.value.slice(0, -1);
+    else pw.value += k;
+  });
 
   async function doLogin() {
     if (!pw.value.trim()) {
@@ -309,18 +316,11 @@ function bindGate() {
     btnLogin.disabled = true;
 
     try {
-      const res = await gateLogin(pw.value.trim());
-      if (res.ok) {
-        playSFX('sfx_access_granted_01');
-        showStamp(stampGranted);
-        msg.textContent = 'ACCESS GRANTED';
-        msg.style.color = '#4dff88';
-        setTimeout(() => location.href = '/play.html', 800);
-      }
+      await gateLogin(pw.value.trim());
+      msg.textContent = 'ACCESS GRANTED';
+      msg.style.color = '#4dff88';
+      setTimeout(() => location.href = '/play.html', 600);
     } catch (err) {
-      playSFX('sfx_access_denied_01');
-      flashOnce();
-      showStamp(stampDenied);
       msg.textContent = err.message || 'ACCESS DENIED';
       msg.style.color = '#ff4d4d';
       pw.value = '';
@@ -329,24 +329,20 @@ function bindGate() {
     }
   }
 
-  btnLogin?.addEventListener('click', doLogin);
+  btnLogin?.addEventListener('click', () => { playClick(); doLogin(); });
   pw?.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
-  // 미니게임 패널 전환
-  const gatePanel = $('gatePanel');
-  const miniPanel = $('miniPanel');
-  
   $('btnToMini')?.addEventListener('click', () => {
-    playSFX('sfx_ui_click_01');
-    gatePanel?.classList.add('hidden');
-    miniPanel?.classList.remove('hidden');
+    playClick();
+    $('gatePanel')?.classList.add('hidden');
+    $('miniPanel')?.classList.remove('hidden');
     startMini();
   });
 
   $('btnBackGate')?.addEventListener('click', () => {
-    playSFX('sfx_ui_click_01');
-    miniPanel?.classList.add('hidden');
-    gatePanel?.classList.remove('hidden');
+    playClick();
+    $('miniPanel')?.classList.add('hidden');
+    $('gatePanel')?.classList.remove('hidden');
   });
 }
 
@@ -390,17 +386,11 @@ function renderMini() {
     $('miniMsg').style.color = '';
   }
 
-  const hintBtn = $('btnMiniHint');
-  if (hintBtn) hintBtn.disabled = true;
-  
-  const accuseBtn = $('btnMiniAccuse');
-  if (accuseBtn) accuseBtn.disabled = false;
-
+  if ($('btnMiniHint')) $('btnMiniHint').disabled = true;
+  if ($('btnMiniAccuse')) $('btnMiniAccuse').disabled = false;
   $('miniRuleBox')?.classList.add('hidden');
   
-  const ruleImg = $('miniRuleImg');
-  if (ruleImg) ruleImg.src = img('miniRule', 'torn_rules_01');
-  
+  if ($('miniRuleImg')) $('miniRuleImg').src = img('miniRule', 'torn_rules_01');
   if ($('miniRuleText')) $('miniRuleText').textContent = '';
 }
 
@@ -420,12 +410,11 @@ function bindMini() {
     const card = e.target.closest('.personCard');
     if (!card) return;
     
-    playSFX('sfx_ui_click_01');
+    playClick();
     
     const who = card.dataset.person;
     mini.accused = who;
 
-    // 선택 표시
     document.querySelectorAll('.personCard').forEach(c => c.classList.remove('selected'));
     card.classList.add('selected');
 
@@ -451,75 +440,63 @@ function bindMini() {
       return;
     }
 
-    playSFX('sfx_ui_click_01');
+    playClick();
 
-    const liar = mini.case.liar;
-    if (mini.accused === liar) {
+    if (mini.accused === mini.case.liar) {
       mini.finished = true;
-      playSFX('sfx_access_granted_01');
-      const msg = $('miniMsg');
-      if (msg) {
-        msg.textContent = mini.usedHint ? '✓ 정답! (힌트 사용으로 랭킹 미등재)' : '✓ 정답입니다!';
-        msg.style.color = '#4dff88';
+      if ($('miniMsg')) {
+        $('miniMsg').textContent = mini.usedHint ? '✓ 정답! (힌트 사용)' : '✓ 정답!';
+        $('miniMsg').style.color = '#4dff88';
       }
-      if ($('btnMiniHint')) $('btnMiniHint').disabled = true;
       if ($('btnMiniAccuse')) $('btnMiniAccuse').disabled = true;
       return;
     }
 
-    // 오답
-    playSFX('sfx_access_denied_01');
     mini.lives -= 1;
     
     if (mini.lives <= 0) {
       mini.finished = true;
       if ($('miniMsg')) {
-        $('miniMsg').textContent = `✗ 게임 오버. 정답은 ${liar}였습니다.`;
+        $('miniMsg').textContent = `✗ 게임 오버. 정답: ${mini.case.liar}`;
         $('miniMsg').style.color = '#ff4d4d';
       }
-      if ($('btnMiniHint')) $('btnMiniHint').disabled = true;
       if ($('btnMiniAccuse')) $('btnMiniAccuse').disabled = true;
       $('miniLives').textContent = '♡♡♡';
       return;
     }
 
-    // 목숨 2개 남음 → 규칙 공개
     if (mini.lives === 2) {
       $('miniRuleBox')?.classList.remove('hidden');
       if ($('miniRuleText')) $('miniRuleText').textContent = mini.case.ruleReveal ?? '';
     }
 
-    // 목숨 1개 남음 → 힌트 사용 가능
     if (mini.lives === 1) {
       if ($('btnMiniHint')) $('btnMiniHint').disabled = false;
     }
 
-    // 상태 업데이트
     $('miniLives').textContent = '♥'.repeat(mini.lives) + '♡'.repeat(3 - mini.lives);
     
-    const msg = $('miniMsg');
-    if (msg) {
-      msg.textContent = `✗ 오답. 남은 기회 ${mini.lives}/3` + (mini.lives === 1 ? ' · 마지막 기회!' : '');
-      msg.style.color = '#ff4d4d';
+    if ($('miniMsg')) {
+      $('miniMsg').textContent = `✗ 오답. 남은 기회 ${mini.lives}/3`;
+      $('miniMsg').style.color = '#ff4d4d';
     }
   });
 
   $('btnMiniHint')?.addEventListener('click', () => {
     if (mini.finished || mini.usedHint) return;
-    playSFX('sfx_ui_click_01');
+    playClick();
     mini.usedHint = true;
     $('miniHintBadge')?.classList.remove('hidden');
     if ($('btnMiniHint')) $('btnMiniHint').disabled = true;
     
-    const msg = $('miniMsg');
-    if (msg) {
-      msg.textContent = mini.case?.hint ?? '힌트 없음';
-      msg.style.color = '#ffa94d';
+    if ($('miniMsg')) {
+      $('miniMsg').textContent = mini.case?.hint ?? '힌트 없음';
+      $('miniMsg').style.color = '#ffa94d';
     }
   });
 
   $('btnMiniRestart')?.addEventListener('click', () => {
-    playSFX('sfx_ui_click_01');
+    playClick();
     startMini();
   });
 }
@@ -530,24 +507,44 @@ function bindMini() {
 function bindTabs() {
   document.querySelectorAll('.tab').forEach(b => {
     b.addEventListener('click', () => {
-      playSFX('sfx_ui_click_01');
+      playClick();
       document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
       document.querySelectorAll('.tabPane').forEach(x => x.classList.remove('active'));
       b.classList.add('active');
-      const t = b.dataset.tab;
-      $('tab-' + t)?.classList.add('active');
+      $('tab-' + b.dataset.tab)?.classList.add('active');
     });
   });
 }
 
 function updateStats() {
-  if ($('statHp')) $('statHp').textContent = state.hp;
-  if ($('statSanity')) $('statSanity').textContent = state.sanity;
-  if ($('statScore')) $('statScore').textContent = state.score;
+  if ($('statRoom')) $('statRoom').textContent = `Room ${state.currentRoom}`;
+  if ($('statStep')) $('statStep').textContent = state.currentStep;
+  
+  // 생존 시간
+  if (state.gameStartTime && $('statTime')) {
+    const elapsed = Math.floor((Date.now() - state.gameStartTime) / 1000);
+    $('statTime').textContent = formatTime(elapsed);
+  }
+}
+
+function startTimer() {
+  if (state.timerInterval) clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(() => {
+    if (state.gameStartTime && $('statTime')) {
+      const elapsed = Math.floor((Date.now() - state.gameStartTime) / 1000);
+      $('statTime').textContent = formatTime(elapsed);
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (state.timerInterval) {
+    clearInterval(state.timerInterval);
+    state.timerInterval = null;
+  }
 }
 
 function updateQueueDisplay() {
-  // 밴 상태면 플레이 불가
   if (state.isBanned) {
     state.queue.total = 0;
     state.queue.position = 0;
@@ -558,7 +555,6 @@ function updateQueueDisplay() {
   if ($('queuePosition')) $('queuePosition').textContent = state.queue.position;
   if ($('queuePlaying')) $('queuePlaying').textContent = state.queue.playing;
   
-  // START 버튼 비활성화 (밴 상태)
   const startBtn = $('btnStartRun');
   if (startBtn) {
     startBtn.disabled = state.isBanned;
@@ -575,56 +571,41 @@ function goNode(id) {
   if (!node) return;
   
   state.currentNode = node;
-  $('phaseChip').textContent = `ROOM ${state.currentRoom}`;
+  state.currentStep++;
   
-  // BGM 변경
+  // 방 번호 업데이트 (노드 ID에서 추출 가능하면)
+  if (node.room) state.currentRoom = node.room;
+  
+  updateStats();
+  
+  $('phaseChip').textContent = `Room ${state.currentRoom}`;
+  
+  // BGM
   playBGM('ROOM_BASE_LOOP');
 
-  // 이미지 업데이트
+  // 이미지
   const sceneImg = $('sceneImage');
-  if (sceneImg) {
-    sceneImg.src = img('bg', node.bg || 'r1_bg_lobby_01');
-  }
+  if (sceneImg) sceneImg.src = img('bg', node.bg || 'r1_bg_lobby_01');
 
-  // 스탯 변경 적용
-  if (node.statChange) {
-    if (node.statChange.hp) state.hp = Math.max(0, Math.min(100, state.hp + node.statChange.hp));
-    if (node.statChange.sanity) state.sanity = Math.max(0, Math.min(100, state.sanity + node.statChange.sanity));
-    if (node.statChange.score) state.score = Math.max(0, state.score + node.statChange.score);
-    updateStats();
-  }
-
-  // 텍스트 업데이트
+  // 텍스트
   if ($('storyText')) $('storyText').textContent = node.text;
 
-  // 선택지 렌더링
+  // 선택지 (함정 표시 없음 - 모두 동일하게)
   const choicesEl = $('choices');
   if (choicesEl) {
     choicesEl.innerHTML = '';
     (node.choices || []).forEach((ch, i) => {
       const btn = document.createElement('button');
-      btn.className = 'choiceBtn' + (ch.dangerHint ? ' danger-hint' : '');
+      btn.className = 'choiceBtn'; // 함정 표시 없음
       btn.innerHTML = `
         <span class="tag">${String.fromCharCode(65 + i)}</span>
         <span class="text">${esc(ch.label)}</span>
       `;
       btn.addEventListener('click', () => {
-        playSFX('sfx_ui_click_01');
+        playClick();
         
         if (ch.type === 'death') {
-          openDeathModal(ch.deathType || 'death_report_01_rulebreak', ch.deathMsg || '당신은 죽었습니다');
-        } else if (ch.type === 'stat') {
-          // 스탯 변경 후 다음 노드로
-          if (ch.statChange) {
-            if (ch.statChange.hp) state.hp = Math.max(0, Math.min(100, state.hp + ch.statChange.hp));
-            if (ch.statChange.sanity) state.sanity = Math.max(0, Math.min(100, state.sanity + ch.statChange.sanity));
-            if (ch.statChange.score) state.score = Math.max(0, state.score + ch.statChange.score);
-            updateStats();
-          }
-          goNode(ch.next);
-        } else if (ch.type === 'clear') {
-          // 룸 클리어
-          handleRoomClear();
+          handleDeath(ch.deathType || 'TRAP', ch.deathMsg || '당신은 죽었습니다');
         } else {
           goNode(ch.next);
         }
@@ -634,40 +615,30 @@ function goNode(id) {
   }
 }
 
-function handleRoomClear() {
-  // 클리어 시간 계산
-  const clearTime = state.gameStartTime ? Math.floor((Date.now() - state.gameStartTime) / 1000) : 0;
-  const minutes = Math.floor(clearTime / 60);
-  const seconds = clearTime % 60;
-  const timeStr = `${minutes}:${String(seconds).padStart(2, '0')}`;
+function handleDeath(type, msg) {
+  playDeathSound();
+  stopBGM();
+  stopTimer();
   
-  // 점수 보너스
-  state.score += 100 + Math.max(0, 300 - clearTime); // 빨리 클리어할수록 보너스
-  updateStats();
+  const survivalTime = state.gameStartTime ? Math.floor((Date.now() - state.gameStartTime) / 1000) : 0;
   
-  // 랭킹 등록 (익명)
-  addToRank(`Player_${Date.now().toString(36).slice(-4)}`, state.score, timeStr);
+  // 사망 기록 저장
+  state.lastDeath = addDeath(type, msg, state.currentRoom, state.currentStep, survivalTime);
+  state.lastDeath.survivalTimeStr = formatTime(survivalTime);
   
-  // 다음 룸으로 (현재는 room1만 있으므로 클리어 메시지)
-  openDeathModal('death_report_05_special', `Room ${state.currentRoom} 클리어!\n점수: ${state.score}\n시간: ${timeStr}`);
+  openDeathModal(type, msg);
 }
 
-function openDeathModal(deathType, deathMsg) {
+function openDeathModal(type, msg) {
   const modal = $('deathModal');
   if (!modal) return;
-  
-  playSFX('sfx_death_hit_01');
-  stopBGM();
 
-  // 이미지 및 텍스트 설정
   const bgImg = $('deathBgImg');
-  if (bgImg) bgImg.src = img('death', deathType);
+  if (bgImg) bgImg.src = img('death', 'death_report_02_trap');
   
-  const typeLabel = deathType.replace('death_report_', '').replace(/_/g, ' ').toUpperCase();
-  if ($('deathType')) $('deathType').textContent = typeLabel;
-  if ($('deathMsg')) $('deathMsg').textContent = deathMsg;
+  if ($('deathType')) $('deathType').textContent = type;
+  if ($('deathMsg')) $('deathMsg').textContent = msg;
 
-  // 입력 초기화
   const willInput = $('willInput');
   if (willInput) {
     willInput.value = '';
@@ -681,53 +652,182 @@ function openDeathModal(deathType, deathMsg) {
 }
 
 function closeDeathModal(willText) {
-  const modal = $('deathModal');
-  if (modal) modal.classList.add('hidden');
-
-  const deathType = $('deathType')?.textContent || 'UNKNOWN';
-  const deathMsg = $('deathMsg')?.textContent || '';
+  $('deathModal')?.classList.add('hidden');
 
   // 유언 저장
-  if (willText && willText.trim()) {
-    addWill(willText.trim(), deathType);
+  if (willText?.trim() && state.lastDeath) {
+    addWill(willText.trim(), {
+      room: state.lastDeath.room,
+      step: state.lastDeath.step,
+      type: state.lastDeath.type
+    });
+    state.lastDeath.willText = willText.trim();
   }
-
-  // 사망 기록 저장
-  addDeath(deathType, deathMsg);
 
   // 피드 업데이트
   renderFeeds();
 
-  // 클리어가 아닌 경우에만 밴
-  if (!deathType.includes('SPECIAL')) {
-    setGameOverBan();
-    showBanNotice();
-    updateQueueDisplay();
+  // 유언 카드 공유 모달 열기
+  openShareModal();
+
+  // 밴 설정
+  setBan();
+  showBanNotice();
+  updateQueueDisplay();
+}
+
+// ========================================
+// 유언 카드 공유 시스템
+// ========================================
+function openShareModal() {
+  const modal = $('shareModal');
+  if (!modal || !state.lastDeath) return;
+  
+  // 프리뷰 업데이트
+  if ($('previewHeader')) $('previewHeader').textContent = 'DEATH REPORT';
+  if ($('previewBody')) $('previewBody').textContent = state.lastDeath.willText || '(유언 없음)';
+  if ($('previewFooter')) {
+    $('previewFooter').textContent = `Room ${state.lastDeath.room} · Step ${state.lastDeath.step} · ${state.lastDeath.type} · ${state.lastDeath.survivalTimeStr || '0:00'}`;
   }
   
-  // 로비로 복귀
+  modal.classList.remove('hidden');
+}
+
+function closeShareModal() {
+  $('shareModal')?.classList.add('hidden');
   resetGameState();
 }
 
+function generateWillCard() {
+  const canvas = $('willCardCanvas');
+  if (!canvas || !state.lastDeath) return null;
+  
+  const ctx = canvas.getContext('2d');
+  const W = 600;
+  const H = 400;
+  canvas.width = W;
+  canvas.height = H;
+  
+  // 배경
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0, 0, W, H);
+  
+  // 테두리
+  ctx.strokeStyle = '#ff4d4d';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(10, 10, W - 20, H - 20);
+  
+  // 헤더
+  ctx.fillStyle = '#ff4d4d';
+  ctx.font = '14px "JetBrains Mono", monospace';
+  ctx.letterSpacing = '3px';
+  ctx.fillText('DEATH REPORT', 30, 50);
+  
+  // 구분선
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.beginPath();
+  ctx.moveTo(30, 70);
+  ctx.lineTo(W - 30, 70);
+  ctx.stroke();
+  
+  // 유언 텍스트
+  ctx.fillStyle = '#e8e8e8';
+  ctx.font = '22px "Noto Sans KR", sans-serif';
+  const text = state.lastDeath.willText || '(유언 없음)';
+  
+  // 줄바꿈 처리
+  const maxWidth = W - 60;
+  const lines = [];
+  let line = '';
+  for (const char of text) {
+    const testLine = line + char;
+    if (ctx.measureText(testLine).width > maxWidth) {
+      lines.push(line);
+      line = char;
+    } else {
+      line = testLine;
+    }
+  }
+  lines.push(line);
+  
+  let y = 130;
+  for (const l of lines.slice(0, 5)) {
+    ctx.fillText(`"${l}"`, 30, y);
+    y += 36;
+  }
+  
+  // 구분선
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.beginPath();
+  ctx.moveTo(30, H - 80);
+  ctx.lineTo(W - 30, H - 80);
+  ctx.stroke();
+  
+  // 푸터 정보
+  ctx.fillStyle = '#888';
+  ctx.font = '12px "JetBrains Mono", monospace';
+  ctx.fillText(`Room ${state.lastDeath.room} · Step ${state.lastDeath.step}`, 30, H - 50);
+  ctx.fillText(`${state.lastDeath.type} · ${state.lastDeath.survivalTimeStr || '0:00'}`, 30, H - 30);
+  
+  // 타임스탬프
+  ctx.fillStyle = '#555';
+  ctx.textAlign = 'right';
+  ctx.fillText(state.lastDeath.time, W - 30, H - 30);
+  ctx.textAlign = 'left';
+  
+  return canvas.toDataURL('image/png');
+}
+
+function downloadWillCard() {
+  playClick();
+  const dataUrl = generateWillCard();
+  if (!dataUrl) return;
+  
+  const link = document.createElement('a');
+  link.download = `death_report_${Date.now()}.png`;
+  link.href = dataUrl;
+  link.click();
+}
+
+function copyShareLink() {
+  playClick();
+  
+  // 현재 URL + 공유 파라미터
+  const url = new URL(window.location.origin);
+  url.searchParams.set('shared', '1');
+  
+  navigator.clipboard.writeText(url.toString()).then(() => {
+    const btn = $('btnCopyLink');
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = '복사됨!';
+      setTimeout(() => btn.textContent = orig, 1500);
+    }
+  }).catch(() => {
+    alert('링크 복사에 실패했습니다.');
+  });
+}
+
 function resetGameState() {
-  state.hp = 100;
-  state.sanity = 100;
-  state.score = 0;
+  state.currentRoom = 1;
+  state.currentStep = 0;
   state.currentNode = null;
   state.gameStartTime = null;
+  state.lastDeath = null;
   
   updateStats();
   
   $('phaseChip').textContent = 'LOBBY';
-  if ($('storyText')) $('storyText').textContent = state.isBanned ? 
-    '24시간 밴 상태입니다. 유언, 사망기록, 랭킹은 열람 가능합니다.' : 
-    'START 버튼을 눌러 게임을 시작하세요.';
+  if ($('storyText')) {
+    $('storyText').textContent = state.isBanned ? 
+      '24시간 참가 제한 중입니다. WILLS, DEATH, RANK 탭에서 기록을 열람할 수 있습니다.' : 
+      'START 버튼을 눌러 릴레이에 참가하세요.';
+  }
   if ($('choices')) $('choices').innerHTML = '';
+  if ($('statTime')) $('statTime').textContent = '0:00';
   
   const sceneImg = $('sceneImage');
-  if (sceneImg && state.config?.ui?.room1?.defaultBg) {
-    sceneImg.src = img('bg', state.config.ui.room1.defaultBg);
-  }
+  if (sceneImg) sceneImg.src = img('bg', 'r1_bg_lobby_01');
 }
 
 function renderFeeds() {
@@ -743,7 +843,7 @@ function renderFeeds() {
           <img class="bgImg" src="${img('will', 'will_card_01_clean')}" alt="" />
           <div class="content">
             <div class="willText">"${esc(w.text)}"</div>
-            <div class="meta">${esc(w.deathType)} · Room ${w.room || 1} · ${esc(w.time)}</div>
+            <div class="meta">Room ${w.room} · Step ${w.step} · ${esc(w.deathType)} · ${esc(w.time)}</div>
           </div>
         </div>
       `).join('');
@@ -763,7 +863,7 @@ function renderFeeds() {
           <img class="bgImg" src="${img('death', 'death_report_02_trap')}" alt="" />
           <div class="content">
             <div class="willText">${esc(d.type)}</div>
-            <div class="meta">${esc(d.msg)} · Score: ${d.score || 0} · ${esc(d.time)}</div>
+            <div class="meta">${esc(d.msg)} · Room ${d.room} · Step ${d.step} · ${formatTime(d.survivalTime)}</div>
           </div>
         </div>
       `).join('');
@@ -781,8 +881,8 @@ function renderFeeds() {
         <div class="feedItem">
           <img class="bgImg" src="${img('rank', 'rank_card_01_normal')}" alt="" />
           <div class="content">
-            <div class="willText">#${i + 1} ${esc(r.name)}</div>
-            <div class="meta">Score: ${r.score} · Clear Time: ${r.time}</div>
+            <div class="willText">#${i + 1} · Step ${r.step}</div>
+            <div class="meta">Room ${r.room} · ${formatTime(r.survivalTime)} · ${esc(r.time)}</div>
           </div>
         </div>
       `).join('');
@@ -791,73 +891,73 @@ function renderFeeds() {
 }
 
 function bindPlay() {
-  // 저장된 데이터 로드
-  loadStoredData();
+  loadData();
   
-  // 밴 체크
-  state.isBanned = checkGameOverBan();
-  if (state.isBanned) {
-    showBanNotice();
-  }
+  state.isBanned = checkBan();
+  if (state.isBanned) showBanNotice();
 
   bindTabs();
   updateStats();
   updateQueueDisplay();
   renderFeeds();
   
-  // BGM 시작
+  initAudio();
   playBGM('LOBBY_WAIT_LOOP');
 
-  // 시작 버튼
+  // START
   $('btnStartRun')?.addEventListener('click', () => {
     if (state.isBanned) return;
     
-    playSFX('sfx_ui_click_01');
-    state.hp = 100;
-    state.sanity = 100;
-    state.score = 0;
+    playClick();
+    state.currentRoom = 1;
+    state.currentStep = 0;
     state.gameStartTime = Date.now();
     state.queue.playing = 1;
     updateStats();
     updateQueueDisplay();
+    startTimer();
     goNode('n1');
   });
 
-  // 미니게임 버튼
+  // MINI GAME
   $('btnMiniFromLobby')?.addEventListener('click', () => {
-    playSFX('sfx_ui_click_01');
+    playClick();
     location.href = '/?mini=1';
   });
 
-  // 로그아웃
+  // LOGOUT
   $('btnLogout')?.addEventListener('click', async () => {
-    playSFX('sfx_ui_click_01');
+    playClick();
     await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
     location.href = '/';
   });
 
-  // 사망 모달 버튼
+  // 사망 모달
   $('btnSkipWill')?.addEventListener('click', () => {
-    playSFX('sfx_ui_click_01');
+    playClick();
     closeDeathModal('');
   });
   $('btnSubmitWill')?.addEventListener('click', () => {
-    playSFX('sfx_ui_click_01');
-    const willText = $('willInput')?.value || '';
-    closeDeathModal(willText);
+    playClick();
+    closeDeathModal($('willInput')?.value || '');
   });
 
-  // 초기 이미지 설정
+  // 공유 모달
+  $('btnDownloadCard')?.addEventListener('click', downloadWillCard);
+  $('btnCopyLink')?.addEventListener('click', copyShareLink);
+  $('btnCloseShare')?.addEventListener('click', () => {
+    playClick();
+    closeShareModal();
+  });
+
+  // 초기 이미지
   const sceneImg = $('sceneImage');
-  if (sceneImg && state.config?.ui?.room1?.defaultBg) {
-    sceneImg.src = img('bg', state.config.ui.room1.defaultBg);
-  }
+  if (sceneImg) sceneImg.src = img('bg', 'r1_bg_lobby_01');
   
-  // 초기 메시지
   if ($('storyText')) {
     $('storyText').textContent = state.isBanned ? 
-      '24시간 밴 상태입니다. 유언, 사망기록, 랭킹은 열람 가능합니다.' : 
-      'START 버튼을 눌러 게임을 시작하세요.';
+      '24시간 참가 제한 중입니다. WILLS, DEATH, RANK 탭에서 기록을 열람할 수 있습니다.' : 
+      'START 버튼을 눌러 릴레이에 참가하세요.';
   }
 }
 
@@ -871,14 +971,11 @@ async function init() {
     state.config = await fetchJSON('/data/config.json');
     state.cases = await fetchJSON('/data/minigame_cases.json');
     state.storyData = await fetchJSON('/data/room1_story.json');
-    
-    initAudio();
 
     if (isGatePage()) {
       bindGate();
       bindMini();
       
-      // URL 파라미터로 미니게임 시작
       const url = new URL(location.href);
       if (url.searchParams.get('mini') === '1') {
         $('gatePanel')?.classList.add('hidden');
@@ -895,12 +992,6 @@ async function init() {
     
   } catch (e) {
     console.error('Init error:', e);
-    document.body.innerHTML = `
-      <div style="padding:24px;color:#ff4d4d;font-family:monospace">
-        <h2>초기화 오류</h2>
-        <pre style="white-space:pre-wrap;color:#ddd;padding:18px;background:rgba(0,0,0,.5);border-radius:8px">${esc(e.stack || e.message || String(e))}</pre>
-      </div>
-    `;
   }
 }
 
