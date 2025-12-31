@@ -1,13 +1,15 @@
 {
+  "roomId": 1,
+  "roomName": "관측실",
   "nodes": [
     {
       "id": "n1",
+      "room": 1,
       "bg": "r1_bg_lobby_01",
-      "text": "너는 로비에 서 있다. 형광등이 깜빡이고, 어딘가에서 물이 떨어지는 소리가 들린다. 세 개의 문이 보인다.",
-      "statChange": { "score": 10 },
+      "text": "눈을 떴다. 어두운 로비다. 형광등이 깜빡이고, 어딘가에서 물 떨어지는 소리가 들린다. 앞에 세 개의 문이 있다.",
       "choices": [
         {
-          "label": "왼쪽 복도로 이동한다",
+          "label": "왼쪽 복도로 간다",
           "type": "goto",
           "next": "n2"
         },
@@ -22,19 +24,18 @@
           "next": "n4"
         },
         {
-          "label": "바닥의 핏자국을 손으로 만진다",
+          "label": "바닥의 핏자국을 만져본다",
           "type": "death",
-          "deathType": "death_report_02_trap",
-          "deathMsg": "바닥에 손을 대는 순간, 무언가가 너를 잡아끌었다.",
-          "dangerHint": true
+          "deathType": "TRAP",
+          "deathMsg": "손을 대자마자 바닥이 꺼졌다. 무언가가 너를 끌어당겼다."
         }
       ]
     },
     {
       "id": "n2",
+      "room": 1,
       "bg": "r1_bg_corridor_01",
-      "text": "복도는 끝이 보이지 않는다. 좌우에 문이 있고, 정면 끝에 희미한 빛이 보인다.",
-      "statChange": { "score": 15 },
+      "text": "복도는 끝이 보이지 않는다. 왼쪽과 오른쪽에 문이 있고, 정면 끝에 희미한 빛이 새어 나온다.",
       "choices": [
         {
           "label": "왼쪽 문을 연다",
@@ -44,9 +45,8 @@
         {
           "label": "오른쪽 문을 연다",
           "type": "death",
-          "deathType": "death_report_02_trap",
-          "deathMsg": "문이 열리자 날카로운 것이 목을 스쳤다. 함정이었다.",
-          "dangerHint": true
+          "deathType": "TRAP",
+          "deathMsg": "문이 열리자 칼날이 목을 스쳤다. 함정이었다."
         },
         {
           "label": "정면의 빛을 향해 간다",
@@ -57,21 +57,19 @@
     },
     {
       "id": "n3",
+      "room": 1,
       "bg": "r1_bg_cctvroom_01",
-      "text": "CCTV 모니터가 희미하게 빛난다. 화면에 무언가 움직이는 것이 보인다. 서류함도 있다.",
-      "statChange": { "sanity": -5, "score": 10 },
+      "text": "모니터들이 희미하게 빛난다. 화면에 무언가 움직이는 게 보인다. 서류함도 눈에 띈다.",
       "choices": [
         {
-          "label": "모니터 화면을 자세히 응시한다",
+          "label": "모니터 화면을 자세히 본다",
           "type": "death",
-          "deathType": "death_report_01_rulebreak",
-          "deathMsg": "규칙: CCTV 화면은 3초 이상 응시하지 말 것. 너무 오래 봤다.",
-          "dangerHint": true
+          "deathType": "RULE VIOLATION",
+          "deathMsg": "규칙: CCTV 화면은 3초 이상 응시하지 말 것. 너무 오래 봤다."
         },
         {
           "label": "모니터 전원을 내린다",
-          "type": "stat",
-          "statChange": { "score": 20, "sanity": 5 },
+          "type": "goto",
           "next": "n7"
         },
         {
@@ -83,35 +81,33 @@
     },
     {
       "id": "n4",
+      "room": 1,
       "bg": "r1_bg_elevator_01",
-      "text": "엘리베이터는 멈춰 있다. 문 틈 사이로 어둠이 보인다. 버튼이 희미하게 빛난다.",
-      "statChange": { "score": 10 },
+      "text": "엘리베이터는 멈춰 있다. 문 틈 사이로 칠흑 같은 어둠이 보인다. 버튼이 희미하게 빛난다.",
       "choices": [
         {
           "label": "버튼을 누른다",
           "type": "death",
-          "deathType": "death_report_02_trap",
-          "deathMsg": "엘리베이터 문이 열리고, 안에서 손이 너를 끌어당겼다.",
-          "dangerHint": true
+          "deathType": "TRAP",
+          "deathMsg": "문이 열리고, 안에서 손이 뻗어 나와 너를 끌어당겼다."
         },
         {
-          "label": "계단을 찾아본다",
+          "label": "계단을 찾는다",
           "type": "goto",
           "next": "n9"
         },
         {
-          "label": "엘리베이터 틈을 들여다본다",
-          "type": "stat",
-          "statChange": { "sanity": -20 },
+          "label": "틈으로 안을 들여다본다",
+          "type": "goto",
           "next": "n10"
         }
       ]
     },
     {
       "id": "n5",
+      "room": 1,
       "bg": "r1_bg_archive_01",
-      "text": "기록실이다. 서류가 산더미처럼 쌓여 있고, 일부는 찢겨져 있다. '17번 파일'이라고 적힌 라벨이 눈에 띈다.",
-      "statChange": { "score": 20 },
+      "text": "기록실이다. 서류가 산더미처럼 쌓여 있다. '17번 파일'이라고 적힌 라벨이 눈에 띈다.",
       "choices": [
         {
           "label": "17번 파일을 찾는다",
@@ -120,12 +116,11 @@
         },
         {
           "label": "찢어진 서류를 읽는다",
-          "type": "stat",
-          "statChange": { "sanity": -10, "score": 15 },
+          "type": "goto",
           "next": "n12"
         },
         {
-          "label": "숨겨진 문이 있는지 벽을 확인한다",
+          "label": "벽을 살펴 숨겨진 문을 찾는다",
           "type": "goto",
           "next": "n13"
         }
@@ -133,9 +128,9 @@
     },
     {
       "id": "n6",
+      "room": 1,
       "bg": "r1_bg_door_01",
-      "text": "정면의 문 앞에 섰다. 문에서 냉기가 느껴지고, 문 아래로 빛이 새어나온다.",
-      "statChange": { "score": 15 },
+      "text": "정면의 문 앞에 섰다. 문 아래로 빛이 새어 나오고, 문에서 냉기가 느껴진다.",
       "choices": [
         {
           "label": "조용히 문을 연다",
@@ -145,23 +140,21 @@
         {
           "label": "노크한다",
           "type": "death",
-          "deathType": "death_report_02_trap",
-          "deathMsg": "노크 소리에 반응한 무언가가 문을 부수고 나왔다.",
-          "dangerHint": true
+          "deathType": "TRAP",
+          "deathMsg": "노크 소리에 반응한 무언가가 문을 부수고 나왔다."
         },
         {
-          "label": "문틈으로 안을 들여다본다",
-          "type": "stat",
-          "statChange": { "sanity": -15, "score": 10 },
+          "label": "문틈으로 안을 본다",
+          "type": "goto",
           "next": "n14"
         }
       ]
     },
     {
       "id": "n7",
+      "room": 1,
       "bg": "r1_bg_cctvroom_01",
-      "text": "모니터가 꺼지고 방 안이 어두워졌다. 하지만 어딘가 안도감이 든다. 뒤쪽에 문이 하나 더 있다.",
-      "statChange": { "sanity": 5, "score": 15 },
+      "text": "모니터가 꺼지고 방이 어두워졌다. 안도감이 든다. 뒤쪽에 문이 하나 더 있다.",
       "choices": [
         {
           "label": "뒤쪽 문으로 나간다",
@@ -169,50 +162,46 @@
           "next": "n15"
         },
         {
-          "label": "어둠 속에서 손전등을 켜고 서류함을 확인한다",
+          "label": "어둠 속에서 서류함을 뒤진다",
           "type": "goto",
           "next": "n8"
         },
         {
           "label": "잠시 숨을 고른다",
-          "type": "stat",
-          "statChange": { "hp": 10, "sanity": 10 },
+          "type": "goto",
           "next": "n15"
         }
       ]
     },
     {
       "id": "n8",
+      "room": 1,
       "bg": "r1_bg_archive_01",
       "text": "서류함에서 '관측 기록'이라고 적힌 파일을 발견했다. 표지에 '열람 금지'라고 적혀 있다.",
-      "statChange": { "score": 15 },
       "choices": [
         {
           "label": "파일을 읽는다",
-          "type": "stat",
-          "statChange": { "sanity": -15, "score": 25 },
+          "type": "goto",
           "next": "n16"
         },
         {
           "label": "파일을 가방에 넣는다",
-          "type": "stat",
-          "statChange": { "score": 10 },
+          "type": "goto",
           "next": "n15"
         },
         {
           "label": "파일을 태운다",
           "type": "death",
-          "deathType": "death_report_03_sacrifice",
-          "deathMsg": "불꽃이 손을 타고 올라왔다. 규칙: 증거를 인멸하지 말 것.",
-          "dangerHint": true
+          "deathType": "RULE VIOLATION",
+          "deathMsg": "규칙: 증거를 인멸하지 말 것. 불꽃이 손을 타고 올라왔다."
         }
       ]
     },
     {
       "id": "n9",
+      "room": 1,
       "bg": "r1_bg_stair_01",
       "text": "계단을 발견했다. 위로 올라가는 길이 있고, 벽에 무언가 적혀 있다.",
-      "statChange": { "score": 20 },
       "choices": [
         {
           "label": "위로 올라간다",
@@ -221,31 +210,28 @@
         },
         {
           "label": "벽의 글씨를 읽는다",
-          "type": "stat",
-          "statChange": { "sanity": -5, "score": 15 },
+          "type": "goto",
           "next": "n17"
         },
         {
           "label": "아래로 내려간다",
           "type": "death",
-          "deathType": "death_report_02_trap",
-          "deathMsg": "계단이 무너지며 끝없는 어둠 속으로 떨어졌다.",
-          "dangerHint": true
+          "deathType": "TRAP",
+          "deathMsg": "계단이 무너지며 끝없는 어둠 속으로 떨어졌다."
         }
       ]
     },
     {
       "id": "n10",
+      "room": 1,
       "bg": "r1_bg_elevator_01",
-      "text": "틈 사이로 아래를 보았다. 깊은 어둠 속에서... 눈이 올려다보고 있었다.",
-      "statChange": { "sanity": -25 },
+      "text": "틈 사이로 아래를 봤다. 깊은 어둠 속에서... 눈이 올려다보고 있었다.",
       "choices": [
         {
           "label": "눈을 마주친다",
           "type": "death",
-          "deathType": "death_report_01_rulebreak",
-          "deathMsg": "규칙: 어둠 속의 눈과 마주치지 말 것.",
-          "dangerHint": true
+          "deathType": "RULE VIOLATION",
+          "deathMsg": "규칙: 어둠 속의 눈과 마주치지 말 것."
         },
         {
           "label": "고개를 돌리고 계단으로 간다",
@@ -254,17 +240,16 @@
         },
         {
           "label": "눈을 감고 뒤로 물러난다",
-          "type": "stat",
-          "statChange": { "sanity": -10 },
+          "type": "goto",
           "next": "n9"
         }
       ]
     },
     {
       "id": "n11",
+      "room": 1,
       "bg": "r1_bg_archive_01",
-      "text": "17번 파일을 찾았다. 안에는 '탈출 경로'가 그려진 지도가 있다.",
-      "statChange": { "score": 30 },
+      "text": "17번 파일을 찾았다. 안에 '탈출 경로'가 그려진 지도가 있다.",
       "choices": [
         {
           "label": "지도를 따라간다",
@@ -272,13 +257,12 @@
           "next": "n15"
         },
         {
-          "label": "지도를 외운 뒤 다른 파일도 확인한다",
-          "type": "stat",
-          "statChange": { "sanity": -5, "score": 20 },
+          "label": "지도를 외우고 다른 파일도 본다",
+          "type": "goto",
           "next": "n12"
         },
         {
-          "label": "지도의 'X' 표시된 곳으로 간다",
+          "label": "지도의 X 표시로 간다",
           "type": "goto",
           "next": "n18"
         }
@@ -286,36 +270,33 @@
     },
     {
       "id": "n12",
+      "room": 1,
       "bg": "r1_bg_archive_01",
-      "text": "찢어진 서류에는 같은 문장이 반복해서 쓰여 있다. '절대 돌아보지 마 절대 돌아보지 마 절대 돌아보지 마...'",
-      "statChange": { "sanity": -10 },
+      "text": "찢어진 서류에는 같은 문장이 반복되어 있다. '절대 돌아보지 마 절대 돌아보지 마 절대 돌아보지 마...'",
       "choices": [
         {
           "label": "뒤를 돌아본다",
           "type": "death",
-          "deathType": "death_report_01_rulebreak",
-          "deathMsg": "뒤를 돌아보는 순간, 무언가가 거기 있었다.",
-          "dangerHint": true
+          "deathType": "RULE VIOLATION",
+          "deathMsg": "뒤를 돌아보는 순간, 무언가가 거기 있었다."
         },
         {
           "label": "앞만 보고 나간다",
-          "type": "stat",
-          "statChange": { "score": 20 },
+          "type": "goto",
           "next": "n15"
         },
         {
           "label": "서류를 주머니에 넣고 나간다",
-          "type": "stat",
-          "statChange": { "score": 15 },
+          "type": "goto",
           "next": "n15"
         }
       ]
     },
     {
       "id": "n13",
+      "room": 1,
       "bg": "r1_bg_voidhall_01",
       "text": "벽 뒤에 숨겨진 통로를 발견했다. 안에서 차가운 바람이 불어온다.",
-      "statChange": { "score": 25 },
       "choices": [
         {
           "label": "통로로 들어간다",
@@ -323,161 +304,244 @@
           "next": "n18"
         },
         {
-          "label": "바람의 방향을 확인하고 조심스럽게 들어간다",
-          "type": "stat",
-          "statChange": { "score": 15 },
+          "label": "바람의 방향을 확인하고 들어간다",
+          "type": "goto",
           "next": "n18"
         },
         {
-          "label": "통로 입구에 표시를 남기고 들어간다",
-          "type": "stat",
-          "statChange": { "score": 10 },
+          "label": "입구에 표시를 남기고 들어간다",
+          "type": "goto",
           "next": "n18"
         }
       ]
     },
     {
       "id": "n14",
+      "room": 1,
       "bg": "r1_bg_infirmary_01",
       "text": "의무실이다. 침대에 누군가 누워 있다... 아니, 있었던 것 같다. 시트에 사람 모양의 자국이 있다.",
-      "statChange": { "sanity": -10, "score": 20 },
       "choices": [
         {
           "label": "침대를 조사한다",
-          "type": "stat",
-          "statChange": { "sanity": -10, "score": 20 },
+          "type": "goto",
           "next": "n15"
         },
         {
           "label": "약품 캐비닛을 연다",
-          "type": "stat",
-          "statChange": { "hp": 30 },
+          "type": "goto",
           "next": "n15"
         },
         {
           "label": "창문을 확인한다",
           "type": "death",
-          "deathType": "death_report_02_trap",
-          "deathMsg": "창문 너머로 손을 뻗는 순간, 유리가 깨지며 끌려갔다.",
-          "dangerHint": true
+          "deathType": "TRAP",
+          "deathMsg": "창문 너머로 손을 뻗자 유리가 깨지며 무언가가 끌어당겼다."
         }
       ]
     },
     {
       "id": "n15",
+      "room": 1,
       "bg": "r1_bg_stair_01",
-      "text": "출구가 가까워지고 있다. 계단 위에 빛이 보인다. 하지만 뒤에서 발소리가 들린다.",
-      "statChange": { "score": 25 },
+      "text": "계단 위에 빛이 보인다. 출구가 가까워지고 있다. 하지만 뒤에서 발소리가 들린다.",
       "choices": [
         {
-          "label": "빛을 향해 전력으로 달린다",
+          "label": "빛을 향해 달린다",
           "type": "goto",
-          "next": "n19_end"
+          "next": "n19"
         },
         {
-          "label": "주변을 확인하며 천천히 올라간다",
-          "type": "stat",
-          "statChange": { "sanity": 5, "score": 15 },
-          "next": "n19_end"
+          "label": "천천히 주변을 확인하며 간다",
+          "type": "goto",
+          "next": "n19"
         },
         {
-          "label": "뒤에서 나는 소리를 확인한다",
+          "label": "뒤의 발소리를 확인한다",
           "type": "death",
-          "deathType": "death_report_01_rulebreak",
-          "deathMsg": "규칙: 출구 앞에서 뒤를 돌아보지 말 것.",
-          "dangerHint": true
+          "deathType": "RULE VIOLATION",
+          "deathMsg": "규칙: 출구 앞에서 뒤를 돌아보지 말 것."
         }
       ]
     },
     {
       "id": "n16",
+      "room": 1,
       "bg": "r1_bg_archive_01",
-      "text": "관측 기록에는 이상한 실험에 대한 내용이 적혀 있다. 읽을수록 머리가 아프다. 무언가 알면 안 되는 것을 알게 된 느낌이다.",
-      "statChange": { "sanity": -20 },
+      "text": "관측 기록에는 이상한 실험에 대한 내용이 적혀 있다. 읽을수록 머리가 아프다.",
       "choices": [
         {
           "label": "끝까지 읽는다",
           "type": "death",
-          "deathType": "death_report_05_special",
-          "deathMsg": "너무 많이 알게 되었다. '그들'이 너를 찾아왔다.",
-          "dangerHint": true
+          "deathType": "SPECIAL",
+          "deathMsg": "너무 많이 알게 되었다. '그들'이 너를 찾아왔다."
         },
         {
           "label": "파일을 덮고 나간다",
-          "type": "stat",
-          "statChange": { "score": 15 },
+          "type": "goto",
           "next": "n15"
         },
         {
-          "label": "핵심 내용만 기억하고 파일을 숨긴다",
-          "type": "stat",
-          "statChange": { "score": 25 },
+          "label": "핵심만 기억하고 파일을 숨긴다",
+          "type": "goto",
           "next": "n15"
         }
       ]
     },
     {
       "id": "n17",
+      "room": 1,
       "bg": "r1_bg_stair_01",
       "text": "벽에 적힌 글씨: '3층으로 가지 마. 그가 거기 있다.'",
       "choices": [
         {
           "label": "3층으로 간다",
           "type": "death",
-          "deathType": "death_report_02_trap",
-          "deathMsg": "경고를 무시했다. 그가 거기 있었다.",
-          "dangerHint": true
+          "deathType": "WARNING IGNORED",
+          "deathMsg": "경고를 무시했다. 그가 거기 있었다."
         },
         {
           "label": "2층에서 출구를 찾는다",
-          "type": "stat",
-          "statChange": { "score": 20 },
+          "type": "goto",
           "next": "n15"
         },
         {
-          "label": "벽에 자신만의 메시지를 남기고 2층으로 간다",
-          "type": "stat",
-          "statChange": { "score": 15 },
+          "label": "메시지를 남기고 2층으로 간다",
+          "type": "goto",
           "next": "n15"
         }
       ]
     },
     {
       "id": "n18",
+      "room": 1,
       "bg": "r1_bg_altar_01",
-      "text": "제단이 있는 방이다. 여긴 원래 이런 방이 아니었다. 벽에 이상한 문양이 그려져 있고, 제단 위에 무언가 놓여 있다.",
-      "statChange": { "sanity": -20, "score": 30 },
+      "text": "제단이 있는 방이다. 여긴 원래 이런 방이 아니었다. 벽에 이상한 문양이 그려져 있다.",
       "choices": [
         {
           "label": "제단에 다가간다",
           "type": "death",
-          "deathType": "death_report_03_sacrifice",
-          "deathMsg": "제단이 너를 받아들였다. 이제 너는 이곳의 일부가 되었다.",
-          "dangerHint": true
+          "deathType": "SACRIFICE",
+          "deathMsg": "제단이 너를 받아들였다. 이제 너는 이곳의 일부다."
         },
         {
-          "label": "벽에 적힌 문양을 해독한다",
-          "type": "stat",
-          "statChange": { "sanity": -15, "score": 35 },
+          "label": "벽의 문양을 해독한다",
+          "type": "goto",
           "next": "n15"
         },
         {
           "label": "다른 출구를 찾는다",
-          "type": "stat",
-          "statChange": { "score": 20 },
+          "type": "goto",
           "next": "n15"
         }
       ]
     },
     {
-      "id": "n19_end",
+      "id": "n19",
+      "room": 1,
       "bg": "r1_bg_lobby_01",
-      "text": "눈부신 빛이 눈을 가린다. 문을 열고 밖으로 나왔다. Room 1 탈출 성공.",
-      "statChange": { "score": 100 },
+      "text": "문을 열고 나왔다. 눈부신 빛. 하지만... 여긴 또 다른 로비다. 앞에 문이 보인다. 끝이 아니다.",
       "choices": [
         {
-          "label": "Room 1 클리어",
-          "type": "clear"
+          "label": "앞으로 나아간다",
+          "type": "goto",
+          "next": "n20"
+        },
+        {
+          "label": "잠시 숨을 고르고 간다",
+          "type": "goto",
+          "next": "n20"
+        },
+        {
+          "label": "주변을 둘러본다",
+          "type": "goto",
+          "next": "n20"
+        }
+      ]
+    },
+    {
+      "id": "n20",
+      "room": 2,
+      "bg": "r1_bg_corridor_01",
+      "text": "[Room 2 진입] 복도가 이어진다. 이번엔 벽에 거울이 걸려 있다. 거울 속에 무언가가 비친다.",
+      "choices": [
+        {
+          "label": "거울을 자세히 본다",
+          "type": "death",
+          "deathType": "TRAP",
+          "deathMsg": "거울 속의 무언가가 손을 뻗어 너를 끌어당겼다."
+        },
+        {
+          "label": "거울을 피해 지나간다",
+          "type": "goto",
+          "next": "n21"
+        },
+        {
+          "label": "거울을 깨뜨린다",
+          "type": "death",
+          "deathType": "RULE VIOLATION",
+          "deathMsg": "규칙: 거울을 깨지 말 것. 파편이 너를 덮쳤다."
+        }
+      ]
+    },
+    {
+      "id": "n21",
+      "room": 2,
+      "bg": "r1_bg_door_01",
+      "text": "복도 끝에 두 개의 문이 있다. 왼쪽 문에서는 소리가, 오른쪽 문에서는 냄새가 난다.",
+      "choices": [
+        {
+          "label": "왼쪽 문을 연다",
+          "type": "goto",
+          "next": "n22"
+        },
+        {
+          "label": "오른쪽 문을 연다",
+          "type": "death",
+          "deathType": "TRAP",
+          "deathMsg": "문을 여는 순간 독가스가 뿜어져 나왔다."
+        },
+        {
+          "label": "두 문 사이의 벽을 확인한다",
+          "type": "goto",
+          "next": "n22"
+        }
+      ]
+    },
+    {
+      "id": "n22",
+      "room": 2,
+      "bg": "r1_bg_stair_01",
+      "text": "계단이 또 나타났다. 위에서 희미한 빛이 보인다. 이번엔 진짜 출구일까?",
+      "choices": [
+        {
+          "label": "계단을 올라간다",
+          "type": "goto",
+          "next": "n23"
+        },
+        {
+          "label": "조심스럽게 올라간다",
+          "type": "goto",
+          "next": "n23"
+        },
+        {
+          "label": "계단 밑을 확인한다",
+          "type": "death",
+          "deathType": "TRAP",
+          "deathMsg": "계단 밑에서 손이 뻗어 나와 발목을 잡았다."
+        }
+      ]
+    },
+    {
+      "id": "n23",
+      "room": 2,
+      "bg": "r1_bg_lobby_01",
+      "text": "[Room 2 통과] 또 다른 공간이 펼쳤다. 릴레이는 계속된다... (현재 베타: 여기까지 구현됨)",
+      "choices": [
+        {
+          "label": "계속 진행한다 (준비 중)",
+          "type": "death",
+          "deathType": "END OF BETA",
+          "deathMsg": "베타 버전의 끝에 도달했습니다. 더 많은 룸이 추가될 예정입니다!"
         }
       ]
     }
