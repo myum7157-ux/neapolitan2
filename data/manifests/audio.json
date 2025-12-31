@@ -1,9 +1,9 @@
 {
   "bgm": {
-    "TENSION_LOW": "/assets/audio/bgm/TENSION_LOW_LOOP (25%).mp3",
-    "TENSION_MID": "/assets/audio/bgm/TENSION_MID_LOOP (50%).mp3",
-    "TENSION_HIGH": "/assets/audio/bgm/TENSION_HIGH_LOOP (75%).mp3",
-    "NEAR_END": "/assets/audio/bgm/NEAR_END_LOOP (100% 직전).mp3"
+    "TENSION_LOW": "/assets/audio/bgm/TENSION_LOW.mp3",
+    "TENSION_MID": "/assets/audio/bgm/TENSION_MID.mp3",
+    "TENSION_HIGH": "/assets/audio/bgm/TENSION_HIGH.mp3",
+    "NEAR_END": "/assets/audio/bgm/NEAR_END.mp3"
   },
   "sfx": {
     "ui_click": "/assets/audio/sfx/sfx_ui_click_01.mp3",
