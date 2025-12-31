@@ -1,219 +1,199 @@
-Napolitan Relay Starter v12 (Full package)
-릴레이 멀티플레이 텍스트 게임 - 한 번에 1명씩 플레이하고 유언을 남기는 협력/배신 게임
-🚨 로그인 안 되는 문제 해결
-빠른 해결 체크리스트
 
-Cloudflare Pages 환경 변수 설정했나요?
 
-Dashboard > Settings > Environment Variables
-GAME_PASSWORD 와 SESSION_SECRET 추가
-Production과 Preview 모두 설정
-⚠️ 환경 변수 추가 후 반드시 재배포 필요!
+## 1) 게임 한 줄 정의
 
+수천 명이 동시에 접속해도 **한 번에 1명만** 방에 들어가 플레이하는 **릴레이 생존 텍스트 게임**.
+플레이어는 방의 “규칙/선택지”를 따라가며 진행하고, **죽으면 유언(Last Words)** 을 남겨 다음 사람에게 영향을 준다.
 
-Functions가 배포되었나요?
-
-Dashboard > Deployments > 최근 배포 클릭
-"Functions" 섹션에서 /api/auth/login 확인
-안 보이면 → Git에 functions/ 폴더 커밋 확인
-
-
-브라우저 콘솔 확인
-
-F12 > Console 탭
-에러 메시지 확인
+---
 
-
-테스트 페이지 사용
+## 2) 핵심 매커니즘 3가지
 
-test-login.html 파일을 프로젝트에 추가
-배포 후 https://your-site.pages.dev/test-login.html 접속
-단계별로 문제 진단
+### A. “한 줄 대기열 + 1인 플레이(릴레이 턴제)”
 
+* 접속자는 모두 **로비에서 대기열(Queue)** 로 들어간다.
+* **현재 플레이어 1명만** “ROOM(플레이 화면)”에 진입 가능.
+* 나머지는 로비에서:
 
+  * “지금 몇 명 대기 중인지”
+  * “내 순번이 몇 번인지”
+  * “현재 플레이어가 얼마나 진행 중인지(상태/단계)”
+    를 보면서 기다린다.
 
-📖 자세한 문제 해결: TROUBLESHOOTING.md 참고
+### B. 협력 vs 배신(유언이 다음 사람을 살리거나 죽임)
 
-📁 프로젝트 구조
-napolitan-relay/
-├── index.html              # Gate (로그인) 페이지
-├── play.html               # 게임 플레이 페이지
-├── test-login.html         # 로그인 테스트 페이지 (NEW!)
-├── functions/              # Cloudflare Pages Functions
-│   ├── _middleware.js      # 인증 미들웨어
-│   └── api/
-│       └── auth/
-│           ├── login.js    # 로그인 API
-│           └── logout.js   # 로그아웃 API
-├── src/
-│   └── app.js             # 메인 JavaScript
-├── styles/
-│   └── app.css            # 스타일
-├── data/
-│   ├── manifests/         # 이미지/오디오 매니페스트
-│   ├── config.json        # UI 설정
-│   ├── room1_story.json   # Room 1 스토리
-│   └── minigame_cases.json # 미니게임 케이스
-├── assets/
-│   ├── images/            # 이미지 파일들
-│   └── audio/             # 오디오 파일들
-├── .gitignore
-├── wrangler.toml          # Cloudflare 설정
-├── .dev.vars.example      # 로컬 환경 변수 예시
-├── README.md              # 이 파일
-└── TROUBLESHOOTING.md     # 문제 해결 가이드
+* 이 게임은 개인 게임이 아니라 **집단 릴레이**다.
+* 다음 플레이어는 “이전 플레이어가 남긴 유언/사망 기록”을 참고하게 되고,
 
-🚀 배포 방법
-1. Cloudflare Pages에 배포
-A. Git 저장소 연결
+  * 진짜 힌트일 수도 있고
+  * 일부러 속이는 함정일 수도 있다.
+* 그래서 자연스럽게:
 
-GitHub/GitLab에 코드 푸시
-Cloudflare Dashboard 로그인
-Workers & Pages > Create application > Pages
-Connect to Git > 저장소 선택
-빌드 설정:
+  * **“협력하면 전체가 전진”**
+  * **“배신하면 다른 사람은 죽고 내 재미/관전은 늘어남”**
+    이 긴장감이 생긴다.
 
-Build command: (비워둠)
-Build output directory: /
-Root directory: (비워둠)
+### C. 룸 구조(살아남는 방 + 반드시 죽는 함정 방)
 
+* 각 방(ROOM)은 **설명 텍스트 + 선택지(3~5개)** 로 진행된다.
+* 선택지는 보통 이런 분포로 설계:
 
+  * 1개: 정답(생존/진행)
+  * 1~2개: 위험(조건부 생존 / 체력·정신력 감소 / 페널티)
+  * 1개: 즉사 트랩(함정)
+  * 0~1개: “무조건 죽는 선택(진행을 위해 희생이 필요한 경우)”
+* 즉, 어떤 방은 “모두 생존”이 아니라 **설계상 누군가는 죽도록** 되어 있어야 한다.
 
-B. 환경 변수 설정 ⚠️ 중요!
-배포 후:
+  * 이게 릴레이가 오래가고 기록이 쌓이게 만드는 핵심 장치.
 
-Settings > Environment Variables
-Production 환경에 추가:
+---
 
-   GAME_PASSWORD=1234
-   SESSION_SECRET=your_random_secret_key_at_least_32_characters_long
+## 3) 실제 유저가 겪는 진행 흐름(처음부터 끝까지)
 
-Preview 환경에도 동일하게 추가
-Save 클릭
-⚠️ 재배포 필요: Deployments > Retry deployment
+### 0. 접속 → Gate(비밀번호)
 
-C. SESSION_SECRET 생성 방법
-bash# Node.js 사용
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+* 사이트 접속 시 **Gate 화면**에서 비밀번호를 입력해야 시작 가능.
+* 성공하면 “로비”로 진입.
 
-# 결과 예시
-# d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5
+### 1. 로비(Lobby)
 
-💻 로컬 개발
-방법 1: Python (권장)
-bashcd napolitan-relay
-python -m http.server 5173
-브라우저에서: http://localhost:5173
-⚠️ 주의: 로컬에서는 Functions가 작동하지 않습니다. 로그인 테스트는 Cloudflare에서만 가능합니다.
-방법 2: Wrangler (Functions 포함)
-bash# Wrangler 설치
-npm install -g wrangler
+로비는 “대기 + 정보 + 관전” 허브다.
 
-# .dev.vars 파일 생성
-cat > .dev.vars << EOF
-GAME_PASSWORD=1234
-SESSION_SECRET=test_secret_key
-EOF
+* 선택:
 
-# 로컬 서버 실행
-wrangler pages dev . --port 5173
-이제 로컬에서도 로그인이 작동합니다!
+  * **START(릴레이 참가)**
+  * **MINI(대기 중 짧은 미니게임)**
+* 열람 가능:
 
-🎨 에셋 파일 교체
-이미지 교체
+  * **WILLS(유언 피드)**: 최근 유언 카드 목록
+  * **DEATH(사망 기록)**: 최근 사망 원인/방/트랩 유형
+  * **RANK(랭킹)**: 클리어 기여도/생존 기록/특정 업적 등
 
-assets/images/ 폴더로 이동
-같은 파일명으로 PNG 파일 교체
+### 2. 대기열 참가(Queue Join)
 
-예: r1_bg_lobby_01.png → 자신의 이미지로 교체
+* START를 누르면 대기열에 들어간다.
+* 로비에 표시되는 정보:
 
+  * 현재 대기 인원
+  * 내 순번
+  * 예상 대기 시간(대략)
+  * 현재 플레이어 상태(입장/진행/사망/정산 중 등)
 
-파일명을 변경하지 말 것 (manifest와 일치해야 함)
+### 3. 내 차례 도착 → 자동 입장
 
-오디오 교체
+* 순번이 오면 별도 클릭 없이 **자동으로 ROOM 화면**으로 전환된다.
+* “이제 너의 턴이다”가 명확해야 함(진입 효과/알림 포함).
 
-assets/audio/bgm/ - BGM 루프 파일
-assets/audio/sfx/ - 효과음 파일
-같은 파일명으로 MP3 파일 교체
+### 4. ROOM 진행(선택지 기반)
 
-파일 목록은 data/manifests/images.json과 audio.json 참고
+* 룸은 기본적으로:
 
-🔧 문제 해결
-"ACCESS DENIED" 계속 나옴
+  * 상단: 이미지(방을 보여주는 컷/상황 그림)
+  * 그 아래: 이야기/상황 설명 텍스트
+  * 하단: 선택지 3~5개
+    구성으로 흘러간다.
+* 선택지 클릭 시:
 
-Cloudflare Dashboard에서 GAME_PASSWORD 확인
-숫자만 입력 (키패드 UI)
-대소문자 구분 없음
+  * 즉시 결과가 나오거나(즉사/생존)
+  * 다음 텍스트/다음 룸으로 이동하거나
+  * 페널티/조건이 붙는다(체력·정신력, 제한 등)
 
-로그인 후에도 play.html로 안 넘어감
+### 5. 결과: 생존(진행) / 사망(Game Over)
 
-F12 > Console 확인
-에러 메시지 확인
-test-login.html로 진단
+* **생존**: 다음 룸으로 계속 진행(턴은 계속 내 것)
+* **사망**: 즉시 “사망 처리 화면”으로 넘어감
+  여기서 **유언을 남기고**, 사망 기록이 저장되며, 턴이 다음 사람에게 넘어간다.
 
-Functions가 작동 안 함
+---
 
-functions/ 폴더가 Git에 커밋되었는지 확인
-Cloudflare Dashboard > Deployments에서 Functions 섹션 확인
-환경 변수 설정 후 재배포
+## 4) 유언/사망기록 시스템(바이럴 핵심)
 
-이미지가 안 나옴
+### A. 유언(Last Words)은 “플레이어가 직접 작성”
 
-data/manifests/images.json 경로 확인
-파일명이 정확히 일치하는지 확인
-파일이 실제로 assets/images/ 에 있는지 확인
+* 사망 시 유저가 직접 한 줄(또는 짧은 문장)을 쓴다.
 
+  * 예: “3번 절대 누르지 마. 진짜로.”
+  * 예: “다 속아라. 정답은 2번이다(거짓말)”
+* 유언은 다음을 포함해 저장된다(노출 범위는 조절 가능):
 
-📚 추가 문서
+  * 유언 텍스트
+  * 사망한 방 번호/상태
+  * 사망 원인 유형(트랩/룰 위반/희생/시간초과 등)
+  * 타임스탬프(“방금”, “10분 전” 같은 표현)
 
-TROUBLESHOOTING.md: 상세한 문제 해결 가이드
-게임 설계 문서: Document 1 참고
-wrangler.toml: Cloudflare 설정 파일
+### B. 사망 기록(Death Log)은 “시스템이 객관적으로 생성”
 
+* 사망 원인은 시스템이 확정한다.
 
-🎮 게임 플레이 흐름
+  * “트랩 선택지 클릭”
+  * “규칙 위반”
+  * “시간 초과”
+  * “강제 희생 룸”
+* 그래서 유언이 거짓이어도, **사망 기록 자체는 신뢰 가능한 데이터**가 된다.
+  → 유저는 “유언(주관/거짓 가능)” + “사망로그(객관)”를 같이 보고 판단하게 됨.
 
-Gate (index.html): 비밀번호 입력
-Lobby (play.html): 대기 or 미니게임
-Room 1: 스토리 진행, 선택지
-Death: 사망 카드 & 유언 남기기
-Feeds: 유언 목록, 사망 기록, 랭킹
+### C. 유언카드 공유(이미지 카드 자동 생성)
 
+이 게임의 바이럴 장치.
 
-🔐 보안 주의사항
+* 유언을 남기면 시스템이 자동으로 “공유용 카드”를 만든다.
+* 카드에 들어가는 요소 예시:
 
-.dev.vars 파일을 Git에 커밋하지 마세요
+  * 상단: “WILL / DEATH REPORT” 같은 헤더
+  * 중앙: 유언 텍스트가 **종이/문서 이미지 위에 인쇄된 듯** 들어감
+  * 하단: 방 번호, 사망 유형, 시간
+  * 배경: 노이즈/스캔/스탬프 같은 연출(깔끔하게 정돈된 범위 내에서)
+* 버튼:
 
-.gitignore에 포함되어 있음
+  * “이미지 저장”
+  * “링크 공유”
+* 목표는 한 장만 보면:
 
+  * “아 이 게임, 죽으면 유언 남기는 릴레이 게임이구나”
+    바로 이해되게 만드는 것.
 
-SESSION_SECRET는 충분히 길고 랜덤하게
+---
 
-최소 32자 이상
+## 5) ‘게임 오버’의 의미(재참가 제한 포함)
 
+* 사망은 “그 판에서 끝”이 아니라, **게임 전체 규칙에서 의미가 있어야 함**.
+* 원하는 규칙이 이거라면 이렇게 작동:
 
-GAME_PASSWORD는 복잡하게
+  * 한 번 죽으면 **해당 참가자는 24시간 참가 불가**(대기열 재진입 불가)
+  * 대신 로비 관전/유언피드 열람은 가능(설계 선택)
+* 이 규칙이 들어가면:
 
-프로덕션에서는 긴 숫자 조합 권장
+  * 억지로 트롤하려는 사람도 부담 생기고
+  * “살아남고 싶다”가 진짜 목표가 됨
 
+---
 
+## 6) 미니게임(MINI)의 역할
 
+* 릴레이 대기시간이 길기 때문에 “대기 중에 할 것”이 필요함.
+* MINI는 메인 진행에 영향을 주지 않는 **대기용 짧은 게임**:
 
-📞 지원
-문제가 계속되면:
+  * 카드(A~E) 공개
+  * 발언/단서 단계적으로 오픈
+  * 목숨 3개
+  * 실패하면 힌트 종이 조각이 더 공개되는 방식
+* 중요한 건:
 
-TROUBLESHOOTING.md 전체 읽기
-test-login.html로 진단
-브라우저 콘솔 로그 확인
-Cloudflare 배포 로그 확인
+  * MINI를 해도 **로그아웃되거나 게이트로 튕기면 안 됨**
+  * 로비에서 자연스럽게 “왔다갔다” 가능해야 함
 
+---
 
-🎯 다음 단계
+## 7) 이 게임을 “한 번에 이해시키는 예시 시나리오”
 
- 환경 변수 설정 확인
- test-login.html로 테스트
- 에셋 파일 교체
- 실제 비밀번호로 변경
- Room 1 스토리 커스터마이징
- 미니게임 케이스 추가
- KV/DO 백엔드 구현 (다음 버전)
+1. A가 플레이하다가 ROOM 3에서 함정 선택지 눌러 사망
+2. 사망 화면에서 A가 유언 작성: “3번은 가짜야. 문을 두드려.”
+3. 시스템은 사망로그를 남김: “ROOM 3 / 트랩 선택지 / 즉사”
+4. A의 유언은 카드로 저장되고 WILLS 피드에 뜸
+5. 다음 순번 B가 입장, 로비에서 유언을 보고 ROOM 3에서 다른 선택을 시도
+6. B가 살아남으면 전체 진행도가 앞으로 가고,
+   B가 또 죽으면 새로운 유언이 쌓여서 다음 사람에게 이어짐
+
+이게 반복되면서 “집단 릴레이 서사”가 만들어지는 구조.
+
+
