@@ -9,7 +9,7 @@
 <body class="page gate">
 
   <main class="gateWrap">
-    <!-- 로그인 패널 -->
+    <!-- 로그인 -->
     <section id="gatePanel" class="gatePanel">
       <div class="gateHeader">
         <div class="chip">ACCESS</div>
@@ -19,7 +19,7 @@
         <div class="field">
           <input id="pw" class="pw" type="password" autocomplete="off" inputmode="numeric" placeholder="PASSWORD" />
         </div>
-        <div id="keypad" class="keypad" aria-label="keypad">
+        <div id="keypad" class="keypad">
           <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
           <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
           <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
@@ -34,12 +34,12 @@
         <p id="gateMsg" class="msg"></p>
       </div>
 
-      <div id="gateStampGranted" class="stamp granted" aria-hidden="true"></div>
-      <div id="gateStampDenied" class="stamp denied" aria-hidden="true"></div>
-      <div id="gateFlash" class="flash" aria-hidden="true"></div>
+      <div id="gateStampGranted" class="stamp granted"></div>
+      <div id="gateStampDenied" class="stamp denied"></div>
+      <div id="gateFlash" class="flash"></div>
     </section>
 
-    <!-- 미니게임 패널 -->
+    <!-- 미니게임 -->
     <section id="miniPanel" class="miniPanel hidden">
       <div class="miniTop">
         <div class="chip">MINI GAME</div>
@@ -61,7 +61,6 @@
             <div id="miniSpeech" class="speech"></div>
           </div>
 
-          <!-- 규칙 공개 - 이미지 위에 텍스트 -->
           <div class="miniRuleReveal cardSub hidden" id="miniRuleBox">
             <img id="miniRuleImg" alt="torn rules" />
             <pre id="miniRuleText"></pre>
