@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Napolitan Relay — Gate</title>
+  <title>나폴리탄 릴레이 — 입장</title>
   <link rel="stylesheet" href="/styles/app.css" />
 </head>
 <body class="page gate">
@@ -12,12 +12,12 @@
     <!-- 로그인 -->
     <section id="gatePanel" class="gatePanel">
       <div class="gateHeader">
-        <div class="chip">ACCESS</div>
-        <div class="chip muted">RELAY</div>
+        <div class="chip">접근</div>
+        <div class="chip muted">릴레이</div>
       </div>
       <div class="gateBody">
         <div class="field">
-          <input id="pw" class="pw" type="password" autocomplete="off" inputmode="numeric" placeholder="PASSWORD" />
+          <input id="pw" class="pw" type="password" autocomplete="off" inputmode="numeric" placeholder="비밀번호" />
         </div>
         <div id="keypad" class="keypad">
           <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
@@ -27,8 +27,8 @@
         </div>
 
         <div class="row">
-          <button id="btnLogin" class="btn primary">ENTER</button>
-          <button id="btnToMini" class="btn">MINI GAME</button>
+          <button id="btnLogin" class="btn primary">입장</button>
+          <button id="btnToMini" class="btn">미니게임</button>
         </div>
 
         <p id="gateMsg" class="msg"></p>
@@ -42,9 +42,9 @@
     <!-- 미니게임 -->
     <section id="miniPanel" class="miniPanel hidden">
       <div class="miniTop">
-        <div class="chip">MINI GAME</div>
+        <div class="chip">미니게임</div>
         <div class="chip muted" id="miniLives">♥♥♥</div>
-        <div class="chip danger hidden" id="miniHintBadge">HINT USED</div>
+        <div class="chip danger hidden" id="miniHintBadge">힌트 사용</div>
       </div>
 
       <div class="miniGrid">
@@ -62,7 +62,7 @@
           </div>
 
           <div class="miniRuleReveal cardSub hidden" id="miniRuleBox">
-            <img id="miniRuleImg" alt="torn rules" />
+            <img id="miniRuleImg" alt="찢어진 규칙서" />
             <pre id="miniRuleText"></pre>
           </div>
 

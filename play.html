@@ -3,29 +3,29 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Napolitan Relay — Play</title>
+  <title>나폴리탄 릴레이</title>
   <link rel="stylesheet" href="/styles/app.css" />
 </head>
 <body class="page play">
 
   <header class="topbar">
     <div class="brand">
-      <div class="chip">RELAY</div>
-      <div class="chip muted" id="phaseChip">LOBBY</div>
+      <div class="chip">릴레이</div>
+      <div class="chip muted" id="phaseChip">로비</div>
     </div>
     <nav class="tabs">
-      <button class="tab active" data-tab="lobby">LOBBY</button>
-      <button class="tab" data-tab="wills">WILLS</button>
-      <button class="tab" data-tab="death">DEATH</button>
-      <button class="tab" data-tab="rank">RANK</button>
+      <button class="tab active" data-tab="lobby">로비</button>
+      <button class="tab" data-tab="wills">유언</button>
+      <button class="tab" data-tab="death">사망기록</button>
+      <button class="tab" data-tab="rank">랭킹</button>
     </nav>
     <div class="right">
-      <button id="btnLogout" class="btn">LOGOUT</button>
+      <button id="btnLogout" class="btn">나가기</button>
     </div>
   </header>
 
   <main class="main">
-    <!-- LOBBY -->
+    <!-- 로비 -->
     <section id="tab-lobby" class="tabPane active">
       <!-- 밴 상태 -->
       <div class="banNotice hidden" id="banNotice">
@@ -41,7 +41,7 @@
             <div class="lbl">총 대기</div>
           </div>
           <div class="queueItem">
-            <div class="num" id="queuePosition">1</div>
+            <div class="num" id="queuePosition">-</div>
             <div class="lbl">내 순번</div>
           </div>
           <div class="queueItem">
@@ -50,46 +50,46 @@
           </div>
         </div>
         <div class="row">
-          <button id="btnStartRun" class="btn primary">START</button>
-          <button id="btnMiniFromLobby" class="btn">MINI GAME</button>
+          <button id="btnStartRun" class="btn primary">시작하기</button>
+          <button id="btnMiniFromLobby" class="btn">미니게임</button>
         </div>
       </div>
 
       <!-- 게임 화면 -->
       <div class="roomCard" id="roomCard">
-        <!-- 상태 바: 방 번호, 진행 단계, 생존 시간 -->
+        <!-- 상태 바 -->
         <div class="statBar">
           <div class="statItem">
             <div class="icon">🚪</div>
-            <div class="label">ROOM</div>
-            <div class="value" id="statRoom">Room 1</div>
+            <div class="label">방</div>
+            <div class="value" id="statRoom">1</div>
           </div>
           <div class="statItem">
             <div class="icon">👣</div>
-            <div class="label">STEP</div>
+            <div class="label">단계</div>
             <div class="value" id="statStep">0</div>
           </div>
           <div class="statItem">
             <div class="icon">⏱️</div>
-            <div class="label">TIME</div>
+            <div class="label">생존</div>
             <div class="value" id="statTime">0:00</div>
           </div>
         </div>
 
-        <img id="sceneImage" class="sceneImage" src="" alt="scene" />
+        <img id="sceneImage" class="sceneImage" src="" alt="장면" />
 
         <div class="storyContent">
-          <div class="storyText" id="storyText">START 버튼을 눌러 릴레이에 참가하세요.</div>
+          <div class="storyText" id="storyText">시작하기 버튼을 눌러 릴레이에 참가하세요.</div>
           <div class="choices" id="choices"></div>
         </div>
       </div>
     </section>
 
-    <!-- WILLS -->
+    <!-- 유언 -->
     <section id="tab-wills" class="tabPane">
       <div class="feedCard">
         <div class="feedHeader">
-          <div class="feedTitle">WILLS FEED</div>
+          <div class="feedTitle">유언 피드</div>
           <div class="chip muted" id="willCount">0</div>
         </div>
         <div class="feedList" id="willList">
@@ -98,11 +98,11 @@
       </div>
     </section>
 
-    <!-- DEATH -->
+    <!-- 사망기록 -->
     <section id="tab-death" class="tabPane">
       <div class="feedCard">
         <div class="feedHeader">
-          <div class="feedTitle">DEATH FEED</div>
+          <div class="feedTitle">사망 기록</div>
           <div class="chip muted" id="deathCount">0</div>
         </div>
         <div class="feedList" id="deathList">
@@ -111,11 +111,11 @@
       </div>
     </section>
 
-    <!-- RANK -->
+    <!-- 랭킹 -->
     <section id="tab-rank" class="tabPane">
       <div class="feedCard">
         <div class="feedHeader">
-          <div class="feedTitle">RANKING (진행 단계 기준)</div>
+          <div class="feedTitle">랭킹 (진행 단계 기준)</div>
         </div>
         <div class="feedList" id="rankList">
           <div class="emptyState">아직 랭킹 데이터가 없습니다</div>
@@ -128,13 +128,13 @@
   <div id="deathModal" class="modal hidden">
     <div class="modalInner">
       <div class="modalHeader">
-        <div class="modalTitle">💀 DEATH REPORT</div>
+        <div class="modalTitle">💀 사망 보고서</div>
       </div>
       
       <div class="deathCardWrap">
-        <img id="deathBgImg" class="bgImg" src="" alt="death" />
+        <img id="deathBgImg" class="bgImg" src="" alt="사망" />
         <div class="overlay">
-          <div class="deathType" id="deathType">TRAP</div>
+          <div class="deathType" id="deathType">함정</div>
           <div class="deathMsg" id="deathMsg">당신은 죽었습니다</div>
         </div>
       </div>
@@ -155,13 +155,12 @@
   <!-- 유언카드 공유 모달 -->
   <div id="shareModal" class="shareModal hidden">
     <div class="shareModalInner">
-      <div class="shareTitle">📤 SHARE YOUR DEATH</div>
+      <div class="shareTitle">📤 사망 기록 공유</div>
       
-      <!-- 카드 프리뷰 -->
       <div class="willCardPreview">
-        <div class="cardHeader" id="previewHeader">DEATH REPORT</div>
+        <div class="cardHeader" id="previewHeader">사망 보고서</div>
         <div class="cardBody" id="previewBody">(유언 없음)</div>
-        <div class="cardFooter" id="previewFooter">Room 1 · Step 0 · TRAP · 0:00</div>
+        <div class="cardFooter" id="previewFooter">1번 방 · 0단계 · 함정 · 0:00</div>
       </div>
       
       <div class="shareButtons">
@@ -172,7 +171,6 @@
     </div>
   </div>
 
-  <!-- 유언카드 이미지 생성용 Canvas (숨김) -->
   <canvas id="willCardCanvas" style="display:none"></canvas>
 
   <script src="/src/app.js" type="module"></script>

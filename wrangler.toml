@@ -1,0 +1,24 @@
+# 나폴리탄 릴레이 - Cloudflare Pages 설정
+name = "napolitan-relay"
+compatibility_date = "2024-01-01"
+
+# 대기열 시스템용 KV 네임스페이스
+# Cloudflare Dashboard에서 KV 네임스페이스 생성 후 아래 id를 교체하세요
+# 
+# 설정 방법:
+# 1. Cloudflare Dashboard > Workers & Pages > KV 탭
+# 2. "Create a namespace" 클릭
+# 3. 이름: QUEUE 입력하고 생성
+# 4. 생성된 네임스페이스의 ID를 아래에 붙여넣기
+#
+# Preview (개발용)와 Production (배포용) 둘 다 설정 필요
+
+[[kv_namespaces]]
+binding = "QUEUE"
+id = "YOUR_KV_NAMESPACE_ID_HERE"
+preview_id = "YOUR_KV_PREVIEW_NAMESPACE_ID_HERE"
+
+# 환경 변수는 Dashboard에서 설정
+# Settings > Environment Variables
+# - GAME_PASSWORD: 게임 접속 비밀번호
+# - SESSION_SECRET: 세션 서명용 비밀키
