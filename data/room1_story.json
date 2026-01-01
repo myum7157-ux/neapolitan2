@@ -1,12 +1,105 @@
 {
   "roomId": 1,
   "roomName": "관측실",
+  "phase": 0,
+  
+  "roomMeta": {
+    "setting": "버려진 연구 시설의 메인 로비. 형광등이 깜빡이고 물 떨어지는 소리만 들린다.",
+    "anomaly": "CCTV 화면을 3초 이상 응시하면 '그것'이 당신을 인식한다.",
+    "contribution": "CCTV 조각, 지도 조각, 제단 조각 중 하나를 획득하여 기부할 수 있다."
+  },
+  
+  "structure": {
+    "hub": "n1",
+    "spokes": {
+      "cam_route": ["n3", "n7", "n8"],
+      "map_route": ["n2", "n5", "n11", "n12"],
+      "blood_route": ["n4", "n9", "n10", "n13", "n18"]
+    },
+    "merge": ["n15"],
+    "exit": ["n19"],
+    "deaths": ["n1_d1", "n2_d1", "n3_d1", "n4_d1", "n6_d1", "n8_d1", "n9_d1", "n10_d1", "n14_d1", "n15_d1", "n16_d1", "n17_d1", "n18_d1"]
+  },
+  
+  "fx": {
+    "base": "r1_bg",
+    "overlays": {
+      "phase0": null,
+      "phase1": "vhs_scanline",
+      "phase2": "vhs_glitch",
+      "taint": "blood_drip",
+      "purity": "clean_glow"
+    }
+  },
+  
+  "phaseVariants": {
+    "1": {
+      "nodeOverrides": {
+        "n3": {
+          "text": "모니터들이 강하게 빛난다. 화면에서 이상한 패턴이 반복된다. 규칙이 바뀌었다: 화면을 1초라도 보면 위험하다. [Phase 1: CCTV 위험도 상승]",
+          "choices": [
+            {
+              "label": "모니터를 흘끗 본다",
+              "type": "death",
+              "deathType": "RULE_VIOLATION",
+              "deathMsg": "Phase 1 규칙: CCTV 화면은 쳐다보지 말 것. 순간의 실수였다.",
+              "globalEffect": { "tracks": { "taint": 3 } }
+            },
+            {
+              "label": "눈을 감고 전원을 끈다",
+              "type": "goto",
+              "next": "n7",
+              "effects": { "addItems": ["cam_shard"] },
+              "globalEffect": { "tracks": { "purity": 2 } }
+            }
+          ]
+        }
+      },
+      "ruleChanges": ["CCTV 화면은 절대 쳐다보지 말 것 (1초도 안 됨)"]
+    },
+    "2": {
+      "nodeOverrides": {
+        "n18": {
+          "text": "제단이 강하게 빛난다. 여기서 기부하면 2배의 가치를 얻는다. 하지만 위험도 2배. [Phase 2: 고위험 고보상]",
+          "choices": [
+            {
+              "label": "제단에 조각을 바친다 (즉시 기부 x2)",
+              "type": "special_deposit",
+              "multiplier": 2,
+              "next": "n15",
+              "requires": { "hasAnyShard": true },
+              "globalEffect": { "tracks": { "sacrifice": 5 } }
+            },
+            {
+              "label": "제단에 피를 바친다",
+              "type": "death",
+              "deathType": "SACRIFICE",
+              "deathMsg": "제단이 당신의 희생을 받아들였다. 전역 progress +10.",
+              "globalEffect": { "tracks": { "sacrifice": 10 }, "progress": 10 }
+            },
+            {
+              "label": "피하고 돌아간다",
+              "type": "goto",
+              "next": "n15"
+            }
+          ]
+        }
+      },
+      "ruleChanges": ["제단에서의 희생은 2배의 가치를 지닌다"]
+    }
+  },
+  
   "rules": [
     "CCTV 화면은 3초 이상 응시하지 말 것",
     "어둠 속의 눈과 마주치지 말 것",
     "증거를 인멸하지 말 것",
     "출구 앞에서 뒤를 돌아보지 말 것"
   ],
+  "shardRoutes": {
+    "cam": ["n3", "n7"],
+    "map": ["n5", "n11"],
+    "blood": ["n18", "n1"]
+  },
   "nodes": [
     {
       "id": "n1",
@@ -15,14 +108,16 @@
       "text": "눈을 떴다. 어두운 로비다. 형광등이 깜빡이고, 어딘가에서 물 떨어지는 소리가 들린다. 앞에 세 개의 문이 있다.",
       "choices": [
         {
-          "label": "왼쪽 복도로 간다",
+          "label": "왼쪽 복도로 간다 (기록실 방향)",
           "type": "goto",
-          "next": "n2"
+          "next": "n2",
+          "hint": "17번 파일이 있을 수 있다"
         },
         {
           "label": "CCTV실 문을 연다",
           "type": "goto",
-          "next": "n3"
+          "next": "n3",
+          "hint": "위험하지만 정보를 얻을 수 있다"
         },
         {
           "label": "엘리베이터를 확인한다",
@@ -33,7 +128,8 @@
           "label": "바닥의 핏자국을 만져본다",
           "type": "death",
           "deathType": "TRAP",
-          "deathMsg": "손을 대자마자 바닥이 꺼졌다. 무언가가 너를 끌어당겼다."
+          "deathMsg": "손을 대자마자 바닥이 꺼졌다. 무언가가 너를 끌어당겼다.",
+          "globalEffect": { "tracks": { "taint": 1 } }
         }
       ]
     },
@@ -65,20 +161,22 @@
       "id": "n3",
       "room": 1,
       "bg": "r1_bg_cctvroom_01",
-      "text": "모니터들이 희미하게 빛난다. 화면에 무언가 움직이는 게 보인다. 서류함도 눈에 띈다.",
-      "onEnter": { "setFlags": ["visited_cctv"] },
+      "text": "모니터들이 희미하게 빛난다. 화면에 무언가 움직이는 게 보인다. 서류함도 눈에 띈다. [CCTV 조각 획득 가능 구역]",
+      "onEnter": { "setFlags": ["visited_cctv"], "canObtain": "cam" },
       "choices": [
         {
           "label": "모니터 화면을 자세히 본다",
           "type": "death",
           "deathType": "RULE_VIOLATION",
-          "deathMsg": "규칙: CCTV 화면은 3초 이상 응시하지 말 것. 너무 오래 봤다."
+          "deathMsg": "규칙: CCTV 화면은 3초 이상 응시하지 말 것. 너무 오래 봤다.",
+          "globalEffect": { "tracks": { "taint": 2 } }
         },
         {
           "label": "모니터 전원을 내린다",
           "type": "goto",
           "next": "n7",
-          "effects": { "setFlags": ["cctv_off"], "threat": -1 }
+          "effects": { "setFlags": ["cctv_off", "obtained_cam_shard"], "threat": -1, "addItems": ["cam_shard"] },
+          "globalEffect": { "tracks": { "purity": 1 } }
         },
         {
           "label": "서류함을 뒤진다",
@@ -115,7 +213,8 @@
       "id": "n5",
       "room": 1,
       "bg": "r1_bg_archive_01",
-      "text": "기록실이다. 서류가 산더미처럼 쌓여 있다. '17번 파일'이라고 적힌 라벨이 눈에 띈다.",
+      "text": "기록실이다. 서류가 산더미처럼 쌓여 있다. '17번 파일'이라고 적힌 라벨이 눈에 띈다. [지도 조각 획득 가능 구역]",
+      "onEnter": { "canObtain": "map" },
       "choices": [
         {
           "label": "17번 파일을 찾는다",
@@ -162,7 +261,8 @@
       "id": "n7",
       "room": 1,
       "bg": "r1_bg_cctvroom_01",
-      "text": "모니터가 꺼지고 방이 어두워졌다. 안도감이 든다. 뒤쪽에 문이 하나 더 있다. [CCTV 비활성화됨]",
+      "text": "모니터가 꺼지고 방이 어두워졌다. 안도감이 든다. 뒤쪽에 문이 하나 더 있다. [CCTV 비활성화됨 - CCTV 조각 획득!]",
+      "onEnter": { "obtainShard": "cam" },
       "choices": [
         {
           "label": "뒤쪽 문으로 나간다",
@@ -204,7 +304,8 @@
           "label": "파일을 태운다",
           "type": "death",
           "deathType": "RULE_VIOLATION",
-          "deathMsg": "규칙: 증거를 인멸하지 말 것. 불꽃이 손을 타고 올라왔다."
+          "deathMsg": "규칙: 증거를 인멸하지 말 것. 불꽃이 손을 타고 올라왔다.",
+          "globalEffect": { "tracks": { "taint": 3 } }
         }
       ]
     },
@@ -243,18 +344,21 @@
           "label": "눈을 마주친다",
           "type": "death",
           "deathType": "RULE_VIOLATION",
-          "deathMsg": "규칙: 어둠 속의 눈과 마주치지 말 것."
+          "deathMsg": "규칙: 어둠 속의 눈과 마주치지 말 것.",
+          "globalEffect": { "tracks": { "taint": 2 } }
         },
         {
           "label": "고개를 돌리고 계단으로 간다",
           "type": "goto",
-          "next": "n9"
+          "next": "n9",
+          "globalEffect": { "tracks": { "purity": 1 } }
         },
         {
           "label": "눈을 감고 뒤로 물러난다",
           "type": "goto",
           "next": "n9",
-          "effects": { "threat": -1 }
+          "effects": { "threat": -1 },
+          "globalEffect": { "tracks": { "purity": 1 } }
         }
       ]
     },
@@ -262,8 +366,8 @@
       "id": "n11",
       "room": 1,
       "bg": "r1_bg_archive_01",
-      "text": "17번 파일을 찾았다. 안에 '탈출 경로'가 그려진 지도가 있다. 지도 여백에 '2번 방의 거울을 조심하라'는 메모가 있다.",
-      "onEnter": { "addItems": ["map_17"], "setFlags": ["has_map", "knows_mirror_rule"] },
+      "text": "17번 파일을 찾았다. 안에 '탈출 경로'가 그려진 지도가 있다. 지도 여백에 '2번 방의 거울을 조심하라'는 메모가 있다. [지도 조각 획득!]",
+      "onEnter": { "addItems": ["map_17", "map_shard"], "setFlags": ["has_map", "knows_mirror_rule", "obtained_map_shard"], "obtainShard": "map" },
       "choices": [
         {
           "label": "지도를 따라간다",
@@ -293,12 +397,14 @@
           "label": "뒤를 돌아본다",
           "type": "death",
           "deathType": "RULE_VIOLATION",
-          "deathMsg": "뒤를 돌아보는 순간, 무언가가 거기 있었다."
+          "deathMsg": "뒤를 돌아보는 순간, 무언가가 거기 있었다.",
+          "globalEffect": { "tracks": { "taint": 1 } }
         },
         {
           "label": "앞만 보고 나간다",
           "type": "goto",
-          "next": "n15"
+          "next": "n15",
+          "globalEffect": { "tracks": { "purity": 1 } }
         },
         {
           "label": "서류를 주머니에 넣고 나간다",
@@ -381,7 +487,8 @@
           "label": "뒤의 발소리를 확인한다",
           "type": "death",
           "deathType": "RULE_VIOLATION",
-          "deathMsg": "규칙: 출구 앞에서 뒤를 돌아보지 말 것."
+          "deathMsg": "규칙: 출구 앞에서 뒤를 돌아보지 말 것.",
+          "globalEffect": { "tracks": { "taint": 2 } }
         }
       ]
     },
@@ -396,7 +503,8 @@
           "label": "끝까지 읽는다",
           "type": "death",
           "deathType": "FORBIDDEN_KNOWLEDGE",
-          "deathMsg": "너무 많이 알게 되었다. '그들'이 너를 찾아왔다."
+          "deathMsg": "너무 많이 알게 되었다. '그들'이 너를 찾아왔다.",
+          "globalEffect": { "tracks": { "truth": 1, "taint": 2 } }
         },
         {
           "label": "파일을 덮고 나간다",
@@ -407,7 +515,8 @@
           "label": "핵심만 기억하고 파일을 숨긴다",
           "type": "goto",
           "next": "n15",
-          "effects": { "setFlags": ["knows_core_info"], "addItems": ["hidden_file_location"] }
+          "effects": { "setFlags": ["knows_core_info"], "addItems": ["hidden_file_location"] },
+          "globalEffect": { "tracks": { "truth": 1 } }
         }
       ]
     },
@@ -427,13 +536,15 @@
         {
           "label": "2층에서 출구를 찾는다",
           "type": "goto",
-          "next": "n15"
+          "next": "n15",
+          "globalEffect": { "tracks": { "purity": 1 } }
         },
         {
           "label": "메시지를 남기고 2층으로 간다",
           "type": "goto",
           "next": "n15",
-          "effects": { "setFlags": ["left_message"] }
+          "effects": { "setFlags": ["left_message"] },
+          "globalEffect": { "tracks": { "truth": 1 } }
         }
       ]
     },
@@ -441,20 +552,23 @@
       "id": "n18",
       "room": 1,
       "bg": "r1_bg_altar_01",
-      "text": "제단이 있는 방이다. 여긴 원래 이런 방이 아니었다. 벽에 이상한 문양이 그려져 있다.",
-      "onEnter": { "threat": 3 },
+      "text": "제단이 있는 방이다. 여긴 원래 이런 방이 아니었다. 벽에 이상한 문양이 그려져 있다. [제단 조각 획득 가능 구역 - 위험!]",
+      "onEnter": { "threat": 3, "canObtain": "blood" },
       "choices": [
         {
           "label": "제단에 다가간다",
           "type": "death",
           "deathType": "SACRIFICE",
-          "deathMsg": "제단이 너를 받아들였다. 이제 너는 이곳의 일부다."
+          "deathMsg": "제단이 너를 받아들였다. 이제 너는 이곳의 일부다.",
+          "globalEffect": { "tracks": { "sacrifice": 3, "taint": 1 } }
         },
         {
           "label": "벽의 문양을 해독한다",
           "type": "goto",
           "next": "n15",
-          "effects": { "setFlags": ["decoded_symbols"], "threat": -1 }
+          "effects": { "setFlags": ["decoded_symbols", "obtained_blood_shard"], "threat": -1, "addItems": ["blood_shard"] },
+          "globalEffect": { "tracks": { "truth": 2 } },
+          "onSuccess": { "obtainShard": "blood" }
         },
         {
           "label": "다른 출구를 찾는다",
@@ -467,10 +581,20 @@
       "id": "n19",
       "room": 1,
       "bg": "r1_bg_lobby_01",
-      "text": "문을 열고 나왔다. 눈부신 빛. 하지만... 여긴 또 다른 로비다. 앞에 문이 보인다. 끝이 아니다. [1번 방 통과]",
+      "text": "문을 열고 나왔다. 눈부신 빛. 하지만... 여긴 또 다른 로비다. 앞에 문이 보인다. 끝이 아니다. [1번 방 통과] 조각을 가지고 있다면 기부할 수 있습니다.",
+      "isExit": true,
+      "canDeposit": true,
       "choices": [
         {
-          "label": "앞으로 나아간다",
+          "label": "조각을 기부한다",
+          "type": "deposit",
+          "next": "n20",
+          "requires": { "hasAnyShard": true },
+          "requiresHint": "(조각이 필요합니다)",
+          "globalEffect": { "tracks": { "sacrifice": 1, "purity": 1 } }
+        },
+        {
+          "label": "조각을 가지고 앞으로 나아간다",
           "type": "goto",
           "next": "n20"
         },
@@ -479,12 +603,6 @@
           "type": "goto",
           "next": "n20",
           "effects": { "threat": -1 }
-        },
-        {
-          "label": "주변을 둘러본다",
-          "type": "goto",
-          "next": "n20",
-          "effects": { "setFlags": ["observed_lobby2"] }
         }
       ]
     },
@@ -498,18 +616,21 @@
           "label": "거울을 자세히 본다",
           "type": "death",
           "deathType": "TRAP",
-          "deathMsg": "거울 속의 무언가가 손을 뻗어 너를 끌어당겼다."
+          "deathMsg": "거울 속의 무언가가 손을 뻗어 너를 끌어당겼다.",
+          "globalEffect": { "tracks": { "taint": 2 } }
         },
         {
           "label": "거울을 피해 지나간다",
           "type": "goto",
-          "next": "n21"
+          "next": "n21",
+          "globalEffect": { "tracks": { "purity": 1 } }
         },
         {
           "label": "거울을 깨뜨린다",
           "type": "death",
           "deathType": "RULE_VIOLATION",
-          "deathMsg": "규칙: 거울을 깨지 말 것. 파편이 너를 덮쳤다."
+          "deathMsg": "규칙: 거울을 깨지 말 것. 파편이 너를 덮쳤다.",
+          "globalEffect": { "tracks": { "taint": 1, "betrayal": 1 } }
         }
       ]
     },
@@ -568,7 +689,17 @@
       "room": 2,
       "bg": "r1_bg_lobby_01",
       "text": "[2번 방 통과] 또 다른 공간이 펼쳤다. 릴레이는 계속된다... (현재 베타: 여기까지 구현됨)",
+      "isExit": true,
+      "canDeposit": true,
       "choices": [
+        {
+          "label": "조각을 기부하고 계속한다 (준비 중)",
+          "type": "deposit_and_end",
+          "requires": { "hasAnyShard": true },
+          "requiresHint": "(조각이 필요합니다)",
+          "deathType": "BETA_END",
+          "deathMsg": "베타 버전의 끝에 도달했습니다. 조각이 기부되었습니다!"
+        },
         {
           "label": "계속 진행한다 (준비 중)",
           "type": "death",

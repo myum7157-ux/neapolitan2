@@ -1,0 +1,271 @@
+{
+  "seasonId": "S1",
+  "seasonName": "시즌 1: 관측실",
+  "seasonDuration": 30,
+  "seasonStartDate": null,
+  
+  "pacing": {
+    "week1": {
+      "roomRange": [1, 25],
+      "boostTrack": "truth",
+      "boostMultiplier": 2,
+      "description": "기록/유언 학습"
+    },
+    "week2": {
+      "roomRange": [26, 50],
+      "boostTrack": "sacrifice",
+      "boostMultiplier": 2,
+      "description": "조각 기부 중심"
+    },
+    "week3": {
+      "roomRange": [51, 75],
+      "boostTracks": ["purity", "taint"],
+      "boostMultiplier": 1.5,
+      "description": "정화/오염 경쟁"
+    },
+    "week4": {
+      "roomRange": [76, 100],
+      "boostTracks": ["sealProgress", "escapeProgress"],
+      "boostMultiplier": 2,
+      "description": "봉인/탈출 분기"
+    }
+  },
+  
+  "weeklyEvents": {
+    "enabled": true,
+    "schedule": [
+      { "day": 1, "event": "shard_boost", "target": "cam", "multiplier": 1.5 },
+      { "day": 8, "event": "shard_boost", "target": "map", "multiplier": 1.5 },
+      { "day": 15, "event": "track_boost", "target": "sacrifice", "multiplier": 2 },
+      { "day": 22, "event": "final_rush", "description": "최종 관문 오픈 준비" }
+    ]
+  },
+  
+  "finalRunner": {
+    "enabled": true,
+    "eligibility": {
+      "minDeposits": 5,
+      "maxBetrayalScore": 10,
+      "minRoomsCleared": 3
+    },
+    "selection": "weighted_raffle",
+    "weightFactors": {
+      "deposits": 2,
+      "purityContribution": 1.5,
+      "truthContribution": 1
+    }
+  },
+  
+  "infrastructure": {
+    "power": { "max": 3, "current": 0, "unlocks": ["emergency_lights", "elevators", "main_power"] },
+    "comm": { "max": 3, "current": 0, "unlocks": ["radio", "intercom", "broadcast"] },
+    "map": { "max": 3, "current": 0, "unlocks": ["floor_1", "floor_2", "full_map"] }
+  },
+  
+  "shardTypes": {
+    "cam": {
+      "name": "CCTV 조각",
+      "description": "CCTV실에서 획득 가능",
+      "icon": "📹"
+    },
+    "map": {
+      "name": "지도 조각",
+      "description": "17번 파일에서 획득 가능",
+      "icon": "🗺️"
+    },
+    "blood": {
+      "name": "제단 조각",
+      "description": "제단/핏자국에서 획득 가능",
+      "icon": "🩸"
+    },
+    "mirror": {
+      "name": "거울 조각",
+      "description": "거울 관련 이벤트에서 획득",
+      "icon": "🪞"
+    }
+  },
+  
+  "phaseRequirements": {
+    "0": {
+      "description": "초기 단계",
+      "requirements": {},
+      "unlocks": ["room_1_25"]
+    },
+    "1": {
+      "description": "첫 번째 관문",
+      "requirements": {
+        "cam": 50,
+        "map": 50,
+        "blood": 50
+      },
+      "unlocks": ["room_26_50", "cctv_rule_change"]
+    },
+    "2": {
+      "description": "두 번째 관문",
+      "requirements": {
+        "cam": 120,
+        "map": 120,
+        "blood": 120,
+        "mirror": 60
+      },
+      "unlocks": ["room_51_75", "altar_high_risk"]
+    },
+    "3": {
+      "description": "최종 관문",
+      "requirements": {
+        "cam": 200,
+        "map": 200,
+        "blood": 200,
+        "mirror": 120
+      },
+      "unlocks": ["room_76_100", "final_gate"]
+    }
+  },
+  
+  "endingTracks": {
+    "escape": {
+      "name": "탈출 엔딩",
+      "description": "최종 관문을 통과하여 탈출",
+      "condition": "flags.finalGateOpen && flags.finalRunnerSuccess"
+    },
+    "seal": {
+      "name": "봉인 엔딩",
+      "description": "시설을 영원히 봉인",
+      "condition": "tracks.sealProgress >= 100"
+    },
+    "truth": {
+      "name": "진실 엔딩",
+      "description": "진실한 유언의 누적",
+      "condition": "tracks.truth >= 500 && tracks.betrayal <= 100"
+    },
+    "sacrifice": {
+      "name": "희생 엔딩",
+      "description": "집단의 희생으로 열리는 길",
+      "condition": "tracks.sacrifice >= 300"
+    },
+    "corruption": {
+      "name": "오염 엔딩",
+      "description": "오염이 정화를 압도",
+      "condition": "tracks.taint > tracks.purity * 2"
+    },
+    "purification": {
+      "name": "정화 엔딩",
+      "description": "정화가 오염을 압도",
+      "condition": "tracks.purity > tracks.taint * 2"
+    },
+    "silence": {
+      "name": "침묵 엔딩",
+      "description": "유언 없이 규칙만 준수",
+      "condition": "stats.willUsageRate < 0.2 && stats.ruleComplianceRate > 0.8"
+    },
+    "doomsday": {
+      "name": "시간초과 엔딩",
+      "description": "시즌 종료까지 탈출 실패",
+      "condition": "seasonEnded && !flags.finalGateOpen"
+    }
+  },
+  
+  "trackEffects": {
+    "purity": {
+      "increaseActions": ["avoid_trap", "help_hint", "donate_shard", "follow_rule"],
+      "decreaseActions": ["false_will", "troll_action"],
+      "curve": "log"
+    },
+    "taint": {
+      "increaseActions": ["rule_violation", "false_will", "selfish_choice"],
+      "decreaseActions": ["purify_action"],
+      "curve": "saturate",
+      "ceiling": 500
+    },
+    "sacrifice": {
+      "increaseActions": ["donate_without_reward", "self_sacrifice", "deposit_shard"],
+      "decreaseActions": []
+    },
+    "truth": {
+      "increaseActions": ["helpful_will", "accurate_hint", "decode_symbols"],
+      "decreaseActions": ["false_will"]
+    },
+    "betrayal": {
+      "increaseActions": ["false_will", "troll_action", "selfish_choice", "steal_shard"],
+      "decreaseActions": []
+    },
+    "sealProgress": {
+      "increaseActions": ["seal_ritual", "contain_entity", "lock_gate"],
+      "decreaseActions": ["break_seal"],
+      "target": 100
+    },
+    "escapeProgress": {
+      "increaseActions": ["unlock_gate", "clear_path", "power_restore"],
+      "decreaseActions": ["block_path"],
+      "target": 100
+    },
+    "rebuildProgress": {
+      "increaseActions": ["repair_power", "repair_comm", "repair_map"],
+      "decreaseActions": ["sabotage"],
+      "infrastructure": true
+    }
+  },
+  
+  "dailyCaps": {
+    "taint": 3,
+    "purity": 5,
+    "progressPerDay": 50
+  },
+  
+  "depositRewards": {
+    "base": 1,
+    "phaseBonus": {
+      "0": 1,
+      "1": 1.2,
+      "2": 1.5,
+      "3": 2
+    }
+  },
+  
+  "shardDropBalancing": {
+    "enabled": true,
+    "boostFactor": 1.5,
+    "reduceFactor": 0.7
+  },
+  
+  "fxOverlays": {
+    "phase0": { "fx": null, "description": "기본 상태" },
+    "phase1": { "fx": "vhs_glitch", "intensity": 0.3 },
+    "phase2": { "fx": "vhs_glitch", "intensity": 0.6 },
+    "phase3": { "fx": "vhs_glitch", "intensity": 0.9 },
+    "taint_low": { "fx": "blood_overlay", "threshold": 50 },
+    "taint_high": { "fx": "corruption", "threshold": 200 },
+    "purity_high": { "fx": "clean_light", "threshold": 200 }
+  },
+  
+  "roomTemplate": {
+    "structure": {
+      "hub": 1,
+      "spokes": 3,
+      "merge": 1,
+      "exit": 1,
+      "deaths": "3-6"
+    },
+    "storyFormat": {
+      "setting": "한 줄: 이 룸이 뭐하는 공간인지",
+      "anomaly": "한 줄: 이번 룸에서만 있는 규칙 변형",
+      "contribution": "한 줄: 여기서 얻는 조각/기부/오염/정화 트리거"
+    },
+    "nodeLimit": {
+      "minText": 12,
+      "maxText": 20,
+      "rulesPerRoom": 1
+    }
+  },
+  
+  "endingPriority": [
+    "escape",
+    "seal",
+    "truth",
+    "sacrifice",
+    "purification",
+    "corruption",
+    "silence",
+    "doomsday"
+  ]
+}
