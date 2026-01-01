@@ -8,13 +8,21 @@
 </head>
 <body class="page play">
 
+  <!-- FX 오버레이 컨테이너 -->
+  <div id="fxOverlayContainer"></div>
+  
+  <!-- Phase 규칙 변경 알림 -->
+  <div id="phaseRuleChange" class="hidden"></div>
+
   <header class="topbar">
     <div class="brand">
       <div class="chip">릴레이</div>
       <div class="chip muted" id="phaseChip">로비</div>
+      <div class="chip" id="globalPhaseChip">Phase 0</div>
     </div>
     <nav class="tabs">
       <button class="tab active" data-tab="lobby">로비</button>
+      <button class="tab" data-tab="global">전역현황</button>
       <button class="tab" data-tab="wills">유언</button>
       <button class="tab" data-tab="death">사망기록</button>
       <button class="tab" data-tab="rank">랭킹</button>
@@ -74,6 +82,11 @@
             <div class="label">생존</div>
             <div class="value" id="statTime">0:00</div>
           </div>
+          <div class="statItem shardIndicator" id="shardIndicator">
+            <div class="icon">💎</div>
+            <div class="label">조각</div>
+            <div class="value" id="statShard">-</div>
+          </div>
         </div>
 
         <img id="sceneImage" class="sceneImage" src="" alt="장면" />
@@ -81,6 +94,186 @@
         <div class="storyContent">
           <div class="storyText" id="storyText">시작하기 버튼을 눌러 릴레이에 참가하세요.</div>
           <div class="choices" id="choices"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 전역 현황 -->
+    <section id="tab-global" class="tabPane">
+      <div class="globalCard">
+        <div class="globalHeader">
+          <div class="globalTitle">🌐 전역 현황</div>
+          <div class="chip" id="globalSeasonChip">시즌 1</div>
+        </div>
+        
+        <!-- Phase 진행도 -->
+        <div class="globalSection">
+          <div class="sectionTitle">Phase 진행도</div>
+          <div class="phaseProgress">
+            <div class="phaseBar">
+              <div class="phaseFill" id="phaseFill" style="width: 0%"></div>
+            </div>
+            <div class="phaseLabels">
+              <span>Phase <span id="currentPhase">0</span></span>
+              <span id="phaseProgress">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 조각 현황 -->
+        <div class="globalSection">
+          <div class="sectionTitle">조각 누적 현황</div>
+          <div class="shardGrid" id="shardGrid">
+            <div class="shardItem">
+              <div class="shardIcon">📹</div>
+              <div class="shardName">CCTV</div>
+              <div class="shardCount" id="shardCam">0</div>
+              <div class="shardNeed" id="needCam"></div>
+            </div>
+            <div class="shardItem">
+              <div class="shardIcon">🗺️</div>
+              <div class="shardName">지도</div>
+              <div class="shardCount" id="shardMap">0</div>
+              <div class="shardNeed" id="needMap"></div>
+            </div>
+            <div class="shardItem">
+              <div class="shardIcon">🩸</div>
+              <div class="shardName">제단</div>
+              <div class="shardCount" id="shardBlood">0</div>
+              <div class="shardNeed" id="needBlood"></div>
+            </div>
+            <div class="shardItem">
+              <div class="shardIcon">🪞</div>
+              <div class="shardName">거울</div>
+              <div class="shardCount" id="shardMirror">0</div>
+              <div class="shardNeed" id="needMirror"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 엔딩 트랙 -->
+        <div class="globalSection">
+          <div class="sectionTitle">엔딩 트랙</div>
+          <div class="trackGrid" id="trackGrid">
+            <div class="trackItem">
+              <div class="trackLabel">✨ 정화</div>
+              <div class="trackBar"><div class="trackFill purity" id="trackPurity" style="width: 0%"></div></div>
+              <div class="trackValue" id="trackPurityVal">0</div>
+            </div>
+            <div class="trackItem">
+              <div class="trackLabel">🌑 오염</div>
+              <div class="trackBar"><div class="trackFill taint" id="trackTaint" style="width: 0%"></div></div>
+              <div class="trackValue" id="trackTaintVal">0</div>
+            </div>
+            <div class="trackItem">
+              <div class="trackLabel">🕯️ 희생</div>
+              <div class="trackBar"><div class="trackFill sacrifice" id="trackSacrifice" style="width: 0%"></div></div>
+              <div class="trackValue" id="trackSacrificeVal">0</div>
+            </div>
+            <div class="trackItem">
+              <div class="trackLabel">📜 진실</div>
+              <div class="trackBar"><div class="trackFill truth" id="trackTruth" style="width: 0%"></div></div>
+              <div class="trackValue" id="trackTruthVal">0</div>
+            </div>
+            <div class="trackItem">
+              <div class="trackLabel">🗡️ 배신</div>
+              <div class="trackBar"><div class="trackFill betrayal" id="trackBetrayal" style="width: 0%"></div></div>
+              <div class="trackValue" id="trackBetrayalVal">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 통계 -->
+        <div class="globalSection">
+          <div class="sectionTitle">시즌 통계</div>
+          <div class="statsGrid">
+            <div class="statBox">
+              <div class="statBoxNum" id="statTotalRuns">0</div>
+              <div class="statBoxLabel">총 시도</div>
+            </div>
+            <div class="statBox">
+              <div class="statBoxNum" id="statTotalDeaths">0</div>
+              <div class="statBoxLabel">총 사망</div>
+            </div>
+            <div class="statBox">
+              <div class="statBoxNum" id="statMaxRoom">1</div>
+              <div class="statBoxLabel">최대 도달</div>
+            </div>
+            <div class="statBox">
+              <div class="statBoxNum" id="statWillCount">0</div>
+              <div class="statBoxLabel">유언 수</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 내 기부 현황 -->
+        <div class="globalSection">
+          <div class="sectionTitle">오늘 내 기부</div>
+          <div class="myDeposits" id="myDeposits">
+            <div class="emptyState">아직 기부한 조각이 없습니다</div>
+          </div>
+        </div>
+        
+        <!-- 인프라 복구 현황 -->
+        <div class="globalSection">
+          <div class="sectionTitle">🔧 인프라 복구</div>
+          <div class="infrastructureGrid">
+            <div class="infraItem">
+              <div class="infraIcon">⚡</div>
+              <div class="infraName">전력</div>
+              <div class="infraLevel" id="infraPower">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+            <div class="infraItem">
+              <div class="infraIcon">📡</div>
+              <div class="infraName">통신</div>
+              <div class="infraLevel" id="infraComm">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+            <div class="infraItem">
+              <div class="infraIcon">🗺️</div>
+              <div class="infraName">지도</div>
+              <div class="infraLevel" id="infraMap">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 엔딩 프리뷰 -->
+        <div class="globalSection">
+          <div class="sectionTitle">🎬 예상 엔딩</div>
+          <div class="endingPreview" id="endingPreview">
+            <h4>현재 상황 기준</h4>
+            <div class="endingName" id="endingName">-</div>
+            <div class="endingDesc" id="endingDesc">조건을 충족해야 합니다</div>
+            <div class="endingModifiers" id="endingModifiers"></div>
+          </div>
+        </div>
+        
+        <!-- Final Runner 등록 -->
+        <div class="finalRunnerSection" id="finalRunnerSection">
+          <h4>🏃 Final Runner 추첨</h4>
+          <div class="eligibilityInfo" id="eligibilityInfo">
+            <div class="eligibilityItem">
+              <span>기부 횟수</span>
+              <span id="eligDeposits">0 / 5</span>
+            </div>
+            <div class="eligibilityItem">
+              <span>클리어 룸</span>
+              <span id="eligRooms">0 / 3</span>
+            </div>
+            <div class="eligibilityItem">
+              <span>배신 점수</span>
+              <span id="eligBetrayal">0 / 10</span>
+            </div>
+          </div>
+          <button class="btnFinalRunner" id="btnFinalRunner" disabled>
+            추첨 등록하기
+          </button>
+          <div class="poolInfo" id="poolInfo">현재 등록자: 0명</div>
         </div>
       </div>
     </section>
@@ -139,6 +332,13 @@
         </div>
       </div>
 
+      <!-- 조각 기부 옵션 -->
+      <div class="depositSection" id="depositSection">
+        <div class="depositLabel">획득한 조각을 기부하시겠습니까?</div>
+        <div class="depositShards" id="depositShards"></div>
+        <div class="depositInfo">기부하면 전역 진행도에 기여합니다</div>
+      </div>
+
       <div class="willInputSection">
         <div class="willInputLabel">다음 플레이어에게 남길 유언</div>
         <textarea id="willInput" class="willInput" placeholder="힌트, 경고, 또는 속임수..." maxlength="100"></textarea>
@@ -148,6 +348,23 @@
       <div class="modalFooter">
         <button id="btnSkipWill" class="btn">건너뛰기</button>
         <button id="btnSubmitWill" class="btn primary">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 기부 결과 모달 -->
+  <div id="depositModal" class="modal hidden">
+    <div class="modalInner depositResult">
+      <div class="modalHeader">
+        <div class="modalTitle">💎 기부 완료!</div>
+      </div>
+      <div class="depositResultContent">
+        <div class="depositResultIcon" id="depositResultIcon">📹</div>
+        <div class="depositResultText" id="depositResultText">CCTV 조각을 기부했습니다</div>
+        <div class="depositResultEffect" id="depositResultEffect">전역 진행도 +1</div>
+      </div>
+      <div class="modalFooter">
+        <button id="btnCloseDeposit" class="btn primary">확인</button>
       </div>
     </div>
   </div>
