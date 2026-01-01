@@ -14,6 +14,11 @@
   --warning:#ffa94d;
   --accent:#6b8aff;
   --accent-dim:rgba(107,138,255,.15);
+  --purity:#4dff88;
+  --taint:#ff4d4d;
+  --sacrifice:#ffa94d;
+  --truth:#6b8aff;
+  --betrayal:#9d4dff;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -273,83 +278,6 @@ body{
   margin-top:16px;
 }
 
-.miniContext{
-  margin-top:10px;
-  padding-top:10px;
-  border-top:1px solid var(--line);
-  color:var(--fg-dim);
-  font-size:14px;
-  line-height:1.5;
-}
-.miniContext:empty{display:none}
-
-/* 미니게임 타입별 스타일 */
-.miniInput{
-  width:100%;
-  padding:14px 16px;
-  border-radius:10px;
-  border:1px solid var(--line);
-  background:var(--card-inner);
-  color:var(--fg);
-  font-size:20px;
-  font-family:'JetBrains Mono', monospace;
-  letter-spacing:.15em;
-  text-align:center;
-  margin-bottom:12px;
-}
-.miniInput:focus{outline:none;border-color:var(--accent)}
-.miniInput.error{border-color:var(--danger);animation:shake .3s}
-.miniInput.success{border-color:var(--success)}
-
-@keyframes shake{
-  0%,100%{transform:translateX(0)}
-  25%{transform:translateX(-5px)}
-  75%{transform:translateX(5px)}
-}
-
-.statementList{display:flex;flex-direction:column;gap:8px}
-.statementItem{
-  padding:12px 16px;
-  border-radius:8px;
-  border:1px solid var(--line);
-  background:var(--card-inner);
-  cursor:pointer;
-  transition:all .2s;
-  font-size:14px;
-  line-height:1.5;
-}
-.statementItem:hover{border-color:var(--accent)}
-.statementItem.selected{border-color:var(--accent);background:var(--accent-dim)}
-.statementItem.wrong{border-color:var(--danger);background:rgba(255,77,77,.1)}
-.statementItem.correct{border-color:var(--success);background:rgba(77,255,136,.1)}
-
-.sequenceList{display:flex;flex-direction:column;gap:8px}
-.sequenceItem{
-  padding:12px 16px;
-  border-radius:8px;
-  border:1px solid var(--line);
-  background:var(--card-inner);
-  cursor:grab;
-  transition:all .2s;
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-.sequenceItem:active{cursor:grabbing}
-.sequenceItem .seqNum{
-  width:24px;
-  height:24px;
-  border-radius:50%;
-  background:var(--accent);
-  color:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:12px;
-  font-weight:600;
-}
-.sequenceItem.dragging{opacity:.5}
-
 .hidden{display:none !important}
 
 /* ========================================
@@ -373,11 +301,12 @@ body{
   background:rgba(10,10,10,.95);
   border-bottom:1px solid var(--line);
   backdrop-filter:blur(12px);
+  gap:12px;
 }
 
-.brand{display:flex;gap:10px;align-items:center}
+.brand{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 
-.tabs{display:flex;gap:8px}
+.tabs{display:flex;gap:8px;overflow-x:auto}
 .tab{
   border:1px solid var(--line);
   background:transparent;
@@ -388,6 +317,7 @@ body{
   font-family:'Noto Sans KR', sans-serif;
   cursor:pointer;
   transition:all .15s;
+  white-space:nowrap;
 }
 .tab:hover{color:var(--fg)}
 .tab.active{background:rgba(255,255,255,.05);color:var(--fg);border-color:var(--line-strong)}
@@ -476,6 +406,8 @@ body{
   padding:16px 24px;
   background:rgba(0,0,0,.3);
   border-bottom:1px solid var(--line);
+  flex-wrap:wrap;
+  gap:12px;
 }
 
 .statItem{
@@ -487,6 +419,15 @@ body{
 .statItem .icon{font-size:20px}
 .statItem .label{font-size:12px;color:var(--muted)}
 .statItem .value{font-size:16px;color:var(--fg);font-family:'JetBrains Mono', monospace}
+
+.shardIndicator.has-shard{
+  background:rgba(107,138,255,.1);
+  border-radius:8px;
+  padding:8px 12px;
+}
+.shardIndicator.has-shard .value{
+  font-size:20px;
+}
 
 .sceneImage{
   width:100%;
@@ -544,6 +485,201 @@ body{
   font-family:'JetBrains Mono', monospace;
 }
 .choiceBtn .text{flex:1}
+
+/* ========================================
+   전역 현황 (Global)
+======================================== */
+.globalCard{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  overflow:hidden;
+}
+
+.globalHeader{
+  padding:18px 24px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.globalTitle{
+  font-size:16px;
+  font-weight:500;
+}
+
+.globalSection{
+  padding:20px 24px;
+  border-bottom:1px solid var(--line);
+}
+.globalSection:last-child{border-bottom:none}
+
+.sectionTitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:14px;
+  letter-spacing:.05em;
+}
+
+/* Phase Progress */
+.phaseProgress{
+  margin-top:10px;
+}
+
+.phaseBar{
+  height:12px;
+  background:var(--card-inner);
+  border-radius:6px;
+  overflow:hidden;
+  border:1px solid var(--line);
+}
+
+.phaseFill{
+  height:100%;
+  background:linear-gradient(90deg, var(--accent) 0%, var(--success) 100%);
+  border-radius:6px;
+  transition:width .5s ease;
+}
+
+.phaseLabels{
+  display:flex;
+  justify-content:space-between;
+  margin-top:8px;
+  font-size:13px;
+  color:var(--muted);
+}
+
+/* Shard Grid */
+.shardGrid{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:12px;
+}
+
+.shardItem{
+  background:var(--card-inner);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:16px;
+  text-align:center;
+}
+
+.shardIcon{
+  font-size:28px;
+  margin-bottom:8px;
+}
+
+.shardName{
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:4px;
+}
+
+.shardCount{
+  font-size:24px;
+  font-weight:700;
+  color:var(--fg);
+  font-family:'JetBrains Mono', monospace;
+}
+
+.shardNeed{
+  font-size:11px;
+  color:var(--danger);
+  margin-top:4px;
+  min-height:16px;
+}
+
+/* Track Grid */
+.trackGrid{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.trackItem{
+  display:grid;
+  grid-template-columns:100px 1fr 50px;
+  align-items:center;
+  gap:12px;
+}
+
+.trackLabel{
+  font-size:13px;
+  color:var(--fg-dim);
+}
+
+.trackBar{
+  height:8px;
+  background:var(--card-inner);
+  border-radius:4px;
+  overflow:hidden;
+  border:1px solid var(--line);
+}
+
+.trackFill{
+  height:100%;
+  border-radius:4px;
+  transition:width .5s ease;
+}
+
+.trackFill.purity{background:var(--purity)}
+.trackFill.taint{background:var(--taint)}
+.trackFill.sacrifice{background:var(--sacrifice)}
+.trackFill.truth{background:var(--truth)}
+.trackFill.betrayal{background:var(--betrayal)}
+
+.trackValue{
+  font-size:14px;
+  font-family:'JetBrains Mono', monospace;
+  color:var(--muted);
+  text-align:right;
+}
+
+/* Stats Grid */
+.statsGrid{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:12px;
+}
+
+.statBox{
+  background:var(--card-inner);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:16px;
+  text-align:center;
+}
+
+.statBoxNum{
+  font-size:28px;
+  font-weight:700;
+  color:var(--accent);
+  font-family:'JetBrains Mono', monospace;
+}
+
+.statBoxLabel{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+/* My Deposits */
+.myDeposits{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.myDepositItem{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 14px;
+  background:var(--card-inner);
+  border:1px solid var(--line);
+  border-radius:8px;
+}
 
 /* ========================================
    피드
@@ -692,6 +828,76 @@ body{
   line-height:1.7;
 }
 
+/* Deposit Section */
+.depositSection{
+  padding:20px 24px;
+  border-bottom:1px solid var(--line);
+  text-align:center;
+}
+
+.depositLabel{
+  font-size:14px;
+  color:var(--muted);
+  margin-bottom:14px;
+}
+
+.depositShards{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+.depositShardBtn{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 20px;
+  border:1px solid var(--accent);
+  border-radius:10px;
+  background:rgba(107,138,255,.1);
+  color:var(--fg);
+  font-size:14px;
+  cursor:pointer;
+  transition:all .2s;
+}
+.depositShardBtn:hover{
+  background:rgba(107,138,255,.2);
+  transform:translateY(-2px);
+}
+.depositShardBtn .icon{font-size:20px}
+
+.depositInfo{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:12px;
+}
+
+/* Deposit Result Modal */
+.depositResult{
+  text-align:center;
+}
+
+.depositResultContent{
+  padding:40px 24px;
+}
+
+.depositResultIcon{
+  font-size:64px;
+  margin-bottom:16px;
+}
+
+.depositResultText{
+  font-size:18px;
+  color:var(--fg);
+  margin-bottom:8px;
+}
+
+.depositResultEffect{
+  font-size:14px;
+  color:var(--success);
+}
+
 .willInputSection{
   padding:24px;
 }
@@ -811,12 +1017,13 @@ body{
 @media(max-width:900px){
   .miniGrid{max-height:calc(100vh - 180px)}
   .people{grid-template-columns:repeat(5,1fr);gap:8px}
-  .miniRuleReveal img{max-height:150px}
-  .miniRuleReveal pre{font-size:15px;padding:14px 20px}
+  .shardGrid{grid-template-columns:repeat(2, 1fr)}
+  .statsGrid{grid-template-columns:repeat(2, 1fr)}
+  .trackItem{grid-template-columns:80px 1fr 40px}
 }
 
 @media(max-width:600px){
-  .topbar{padding:10px 16px}
+  .topbar{padding:10px 16px;flex-wrap:wrap}
   .tabs{overflow-x:auto;flex-wrap:nowrap}
   .tab{white-space:nowrap;padding:8px 12px;font-size:13px}
   .main{padding:16px}
@@ -826,16 +1033,285 @@ body{
   .miniGrid{max-height:calc(100vh - 160px)}
   .people{grid-template-columns:repeat(5,1fr);gap:6px}
   .personCard .tag{font-size:16px;left:6px;top:6px}
-  .miniRuleReveal img{max-height:120px}
-  .miniRuleReveal pre{font-size:14px;padding:12px 16px}
   .cardSub{padding:12px}
-  .miniPrompt{font-size:14px}
-  .miniRule{font-size:13px}
-  .speech{font-size:14px;min-height:50px}
   .storyText{font-size:15px}
   .choiceBtn{padding:14px 16px;font-size:14px}
-  .miniButtons{gap:8px}
-  .miniButtons .btn{padding:10px 14px;font-size:13px}
-  .miniInput{font-size:18px;padding:12px 14px}
-  .statementItem{padding:10px 14px;font-size:13px}
+  .shardGrid{grid-template-columns:repeat(2, 1fr);gap:8px}
+  .shardItem{padding:12px}
+  .shardIcon{font-size:24px}
+  .shardCount{font-size:20px}
+  .statsGrid{grid-template-columns:repeat(2, 1fr);gap:8px}
+  .statBox{padding:12px}
+  .statBoxNum{font-size:24px}
+  .trackItem{grid-template-columns:70px 1fr 35px;gap:8px}
+  .trackLabel{font-size:12px}
+  .statBar{padding:12px 16px}
+}
+
+/* ========================================
+   FX 오버레이 시스템
+======================================== */
+#fxOverlayContainer{
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  pointer-events:none;
+  z-index:1000;
+}
+
+.fx-overlay{
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+}
+
+.fx-vhs_scanline{
+  background:repeating-linear-gradient(
+    0deg,
+    transparent 0,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  animation:scanline 8s linear infinite;
+}
+
+@keyframes scanline{
+  0%{background-position:0 0}
+  100%{background-position:0 100%}
+}
+
+.fx-vhs_glitch{
+  background:linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,0,0,0.03) 25%,
+    transparent 50%,
+    rgba(0,255,255,0.03) 75%,
+    transparent 100%
+  );
+  animation:glitchShift 0.15s infinite;
+}
+
+@keyframes glitchShift{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-2px)}
+  75%{transform:translateX(2px)}
+}
+
+.fx-blood_drip{
+  background:linear-gradient(
+    180deg,
+    rgba(139,0,0,0.1) 0%,
+    transparent 30%
+  );
+}
+
+.fx-corruption{
+  background:radial-gradient(
+    ellipse at center,
+    transparent 40%,
+    rgba(80,0,0,0.15) 100%
+  );
+  animation:pulseCorruption 3s ease-in-out infinite;
+}
+
+@keyframes pulseCorruption{
+  0%,100%{opacity:0.5}
+  50%{opacity:1}
+}
+
+.fx-clean_glow{
+  background:radial-gradient(
+    ellipse at center,
+    rgba(77,255,136,0.05) 0%,
+    transparent 70%
+  );
+}
+
+/* Phase 규칙 변경 알림 */
+#phaseRuleChange{
+  position:fixed;
+  top:80px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(255,77,77,0.9);
+  color:#fff;
+  padding:12px 24px;
+  border-radius:8px;
+  font-size:14px;
+  font-weight:500;
+  z-index:1100;
+  animation:ruleAlert 0.5s ease-out;
+  box-shadow:0 4px 20px rgba(255,77,77,0.4);
+}
+
+#phaseRuleChange.hidden{
+  display:none;
+}
+
+@keyframes ruleAlert{
+  0%{opacity:0;transform:translateX(-50%) translateY(-20px)}
+  100%{opacity:1;transform:translateX(-50%) translateY(0)}
+}
+
+/* Final Runner 등록 버튼 */
+.finalRunnerSection{
+  margin-top:24px;
+  padding:16px;
+  background:var(--card-inner);
+  border-radius:12px;
+  border:1px solid var(--line-strong);
+}
+
+.finalRunnerSection h4{
+  font-size:14px;
+  color:var(--accent);
+  margin-bottom:12px;
+}
+
+.btnFinalRunner{
+  width:100%;
+  padding:14px;
+  background:linear-gradient(135deg, var(--accent), #9d4dff);
+  border:none;
+  border-radius:8px;
+  color:#fff;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+
+.btnFinalRunner:hover{
+  transform:translateY(-2px);
+  box-shadow:0 4px 15px rgba(107,138,255,0.4);
+}
+
+.btnFinalRunner:disabled{
+  background:#444;
+  cursor:not-allowed;
+  transform:none;
+}
+
+.eligibilityInfo{
+  margin-top:12px;
+  font-size:12px;
+  color:var(--muted);
+}
+
+.eligibilityItem{
+  display:flex;
+  justify-content:space-between;
+  padding:4px 0;
+}
+
+.eligibilityItem.met{color:var(--success)}
+.eligibilityItem.unmet{color:var(--danger)}
+
+/* 엔딩 프리뷰 */
+.endingPreview{
+  margin-top:20px;
+  padding:16px;
+  background:linear-gradient(135deg, rgba(107,138,255,0.1), rgba(157,77,255,0.1));
+  border-radius:12px;
+  border:1px solid rgba(107,138,255,0.3);
+}
+
+.endingPreview h4{
+  font-size:14px;
+  color:var(--fg);
+  margin-bottom:8px;
+}
+
+.endingName{
+  font-size:18px;
+  font-weight:600;
+  color:var(--accent);
+}
+
+.endingDesc{
+  font-size:12px;
+  color:var(--fg-dim);
+  margin-top:4px;
+}
+
+.endingModifiers{
+  margin-top:12px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+
+.endingModifier{
+  padding:4px 8px;
+  background:rgba(255,255,255,0.1);
+  border-radius:4px;
+  font-size:11px;
+  color:var(--fg-dim);
+}
+
+/* 인프라 복구 현황 */
+.infrastructureGrid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:12px;
+  margin-top:12px;
+}
+
+.infraItem{
+  background:var(--card-inner);
+  padding:12px;
+  border-radius:8px;
+  text-align:center;
+}
+
+.infraIcon{
+  font-size:24px;
+  margin-bottom:4px;
+}
+
+.infraName{
+  font-size:12px;
+  color:var(--fg-dim);
+}
+
+.infraLevel{
+  display:flex;
+  gap:4px;
+  justify-content:center;
+  margin-top:6px;
+}
+
+.infraLevel span{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--line);
+}
+
+.infraLevel span.active{
+  background:var(--success);
+}
+
+/* 주간 이벤트 배너 */
+.weeklyEventBanner{
+  background:linear-gradient(90deg, rgba(255,169,77,0.2), rgba(255,77,77,0.2));
+  padding:12px 16px;
+  border-radius:8px;
+  margin-bottom:16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.weeklyEventIcon{
+  font-size:24px;
+}
+
+.weeklyEventText{
+  font-size:13px;
+  color:var(--fg);
+}
+
+.weeklyEventText strong{
+  color:var(--warning);
 }
