@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>대기열 관리</title>
+  <style>
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      padding: 20px;
+      background: #0a0a0a;
+      color: #e8e8e8;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    h1 { color: #6b8aff; font-size: 20px; }
+    h2 { color: #888; font-size: 14px; margin-bottom: 16px; }
+    button {
+      padding: 12px 24px;
+      font-size: 14px;
+      font-family: inherit;
+      background: rgba(255,77,77,0.2);
+      border: 1px solid rgba(255,77,77,0.4);
+      color: #ff4d4d;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover { background: rgba(255,77,77,0.3); }
+    button.safe {
+      background: rgba(107,138,255,0.2);
+      border-color: rgba(107,138,255,0.4);
+      color: #6b8aff;
+    }
+    button.safe:hover { background: rgba(107,138,255,0.3); }
+    pre {
+      background: rgba(0,0,0,0.4);
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .success { color: #4dff88; }
+    .error { color: #ff4d4d; }
+    .info { color: #6b8aff; }
+    .stat {
+      display: inline-block;
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 6px;
+      margin: 4px;
+    }
+    .stat .num { font-size: 24px; font-weight: bold; color: #6b8aff; }
+    .stat .lbl { font-size: 11px; color: #888; }
+  </style>
+</head>
+<body>
+  <h1>🔧 대기열 관리</h1>
+  
+  <div class="card">
+    <h2>현재 상태</h2>
+    <div id="stats">
+      <div class="stat">
+        <div class="num" id="total">-</div>
+        <div class="lbl">대기 중</div>
+      </div>
+      <div class="stat">
+        <div class="num" id="playing">-</div>
+        <div class="lbl">플레이 중</div>
+      </div>
+    </div>
+    <pre id="debug">로딩 중...</pre>
+    <button class="safe" onclick="refresh()">🔄 새로고침</button>
+  </div>
+  
+  <div class="card">
+    <h2>⚠️ 위험 작업</h2>
+    <button onclick="resetQueue()">🗑️ 대기열 초기화</button>
+    <p style="font-size:12px; color:#888; margin-top:12px;">
+      대기열과 플레이 중 상태를 모두 삭제합니다.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>로그</h2>
+    <pre id="log"></pre>
+  </div>
+
+  <script>
+    function log(msg, type = 'info') {
+      const el = document.getElementById('log');
+      const time = new Date().toLocaleTimeString();
+      const color = type === 'success' ? '#4dff88' : type === 'error' ? '#ff4d4d' : '#6b8aff';
+      el.innerHTML = `<span style="color:${color}">[${time}] ${msg}</span>\n` + el.innerHTML;
+    }
+
+    async function refresh() {
+      try {
+        const res = await fetch('/api/queue/status', { credentials: 'same-origin' });
+        const data = await res.json();
+        
+        document.getElementById('total').textContent = data.total ?? '-';
+        document.getElementById('playing').textContent = data.playing ?? '-';
+        document.getElementById('debug').textContent = JSON.stringify(data, null, 2);
+        
+        log('상태 갱신됨', 'success');
+      } catch (e) {
+        log('상태 조회 실패: ' + e.message, 'error');
+      }
+    }
+
+    async function resetQueue() {
+      if (!confirm('정말 대기열을 초기화하시겠습니까?')) return;
+      
+      try {
+        const res = await fetch('/api/queue/status', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ action: 'reset' })
+        });
+        const data = await res.json();
+        
+        if (data.ok) {
+          log('✓ 대기열 초기화 완료!', 'success');
+          refresh();
+        } else {
+          log('초기화 실패: ' + (data.error || '알 수 없는 오류'), 'error');
+        }
+      } catch (e) {
+        log('요청 실패: ' + e.message, 'error');
+      }
+    }
+
+    // 초기 로드 & 자동 갱신
+    refresh();
+    setInterval(refresh, 5000);
+  </script>
+</body>
+</html>
